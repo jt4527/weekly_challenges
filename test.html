@@ -1,0 +1,2945 @@
+<!DOCTYPE HTML>
+<!-- template for HTML conversion plot -->
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> iNZight Plot </title>
+      <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
+<style> /* layout settings */
+#main {
+  position: fixed;
+  display: flex;
+  width: 100%;
+  top: 60px;
+  height: calc(100% - 60px);
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 10px;
+  background-color: #e3e3e3;
+  overflow: hidden;
+}
+
+.svg-div, .tbl-div {
+  transition: all ease-in-out 0.5s;
+  padding: 20px;
+  border-radius: 5px;
+  height: 100%;
+  background-color: white;
+  box-shadow: 0 0 3px #B0BEC5;
+  min-width: 50%;
+}
+
+.tbl-div {
+   overflow-x: auto;
+}
+
+/*moveEverything left/right */
+.moveRight {
+  transform: translateX(200%);
+}
+
+.moveLeft {
+  transform: translateX(-200%);
+}
+
+.expand {
+  min-width: 100%;
+  transform: translateX(-50%);
+}
+
+.mid {
+  min-width: 100%;
+  /*transform: translateX(50%);*/
+}
+
+svg {
+  display: inline-block;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+}
+
+/* attempt to use media queries */
+@media (max-width: 600px), (orientation: portrait) {
+
+  #main {
+    position: fixed;
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .svg-div, .tbl-div {
+    transition: all ease-in-out 0.5s;
+    width: 100%;
+    min-height: 50%;
+  }
+
+  svg {
+    height: 100%;
+  }
+
+  .tbl-div {
+    overflow-y: auto;
+  }
+
+  /* move everything up/down */
+  .moveRight {
+    transform: translateY(200%);
+  }
+
+  .moveLeft {
+    transform: translateY(-200%);
+  }
+
+  .mid {
+    min-height: 100%;
+    /*transform: translateY(50%);*/
+  }
+
+  .expand {
+    min-height: 100%;
+    transform: translateY(-50%);
+  }
+
+  label {
+    display: none;
+  }
+
+}
+
+/* navigation bar */
+#control {
+  width: 100%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  height: 60px;
+  background-color: #12508a;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu {
+  list-style: none;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: right;
+  font-size: 15px;
+  margin: 5px;
+  transition: all ease 0.3s;
+  padding: 7px;
+  border-radius: 3px;
+}
+
+.menu li:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.glyphicon {
+  font-size: 15px;
+}
+
+#selectVar {
+  height: 45px;
+}
+
+.form-div {
+  margin: 15px 0px;
+}
+
+label {
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 5px;
+  font-weight: normal;
+}
+
+/* style help overlay */
+.help-overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: -1;
+  transition: all ease 0.5s;
+  overflow-y: auto;
+}
+
+.help-info {
+  padding: 10px;
+  margin: auto;
+  color: black;
+  background-color: white;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.title {
+  font-size: 25px;
+}
+
+.move {
+  opacity: 1;
+  z-index: 5;
+}
+
+.logo {
+  width: 20%;
+}
+
+/*** TABLE PROPERTIES ***/
+/*totals column  or totals row */
+table {
+  width: 100% !important;
+}
+
+td, th {
+  text-align: center;
+  word-wrap: break-word;
+  font-size: 12px;
+}
+
+/* table headings */
+.headings {
+  font-style: italic;
+  font-weight:normal;
+  text-decoration: underline;
+  text-align: center;
+  align: center;
+}
+
+/* groups for two way bar plots */
+.yGroup, .tc {
+  text-align: center;
+  font-weight: bold;
+}
+
+.Percentage {
+  background-color:rgb(0, 0, 255);
+  color: white;
+  opacity: 0.75;
+  margin-left: 10px;
+}
+
+.Count {
+ background-color: purple;
+ opacity: 0.75;
+ color: white;
+ margin-left: 10px;
+}
+
+.trend-info, .brush-info {
+  color: white;
+}
+
+/* textlabels */
+.label {
+  font-size: 10;
+  fill: black;
+  stroke: none;
+  fill-opacity: 1;
+  text-anchor: middle;
+  visibility: inherit;
+  font-weight: normal;
+}
+
+/* BAR PROPERTIES (for bar charts) */
+.bar {
+  stroke: none;
+  visibility: visible;
+  opacity: 1;
+}
+
+.bar:hover {
+  stroke-width: 50%;
+  fill-opacity: 0.5;
+}
+
+/* upon selection */
+.selected {
+  opacity: 1;
+  visibility: visible;
+}
+
+.none {
+  opacity: 0.2;
+}
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}
+
+/*highlighting data */
+.totalRow, .tabSelect, .select {
+  align: center;
+  font-weight: bold;
+}
+
+.rowSelect {
+  display: table-row;
+  opacity: 1;
+}
+
+/* legend interactions and styling */
+.show {
+  font-size: 115%;
+  fill-opacity: 0.5;
+}
+
+.out {
+  font-size: 100%;
+  fill-opacity: 1;
+}
+
+.keyText {
+  fill: black;
+}
+
+/* for box plots - dot plots, histograms */
+.box {
+  fill: gray;
+  fill-opacity: 0.5;
+}
+
+.fillBox {
+  fill-opacity: 0.2;
+}
+
+/* for dot plots and scatter plots */
+.point:hover { /* showPoint */
+  fill: currentColor;
+  stroke-width: 50%;
+  fill-opacity: 1;
+}
+
+/* for histograms and hexbins */
+.histBar {
+  stroke: white;
+  stroke-width: 0.25;
+}
+
+.hexbin {
+  stroke: none;
+}
+
+.hexbin:hover, .histBar:hover {
+  fill-opacity: 0.5;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 5px;
+    z-index: 5;
+    opacity: 1;
+    visibility: hidden;
+    font: 11px sans-serif;
+    background: white;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+span {
+  font-weight: bold;
+}
+
+/* for iNZightMaps */
+.selectRegion {
+  stroke: darkgray;
+  fill: black;
+  fill-opacity: 0.5;
+}
+
+/* line chart container */
+.spark-div {
+  width: 100%;
+  padding: 10px;
+  clear: left;
+}
+
+/* ggplot2 theme for sparkline chart */
+.grid-background {
+  fill: #ddd;
+}
+
+.spark-xaxis path, .spark-yaxis path {
+  display: none;
+}
+
+.grid-lines {
+  stroke: #fff;
+  stroke-width: 0.75px;
+}
+
+.grid path {
+  display: none;
+}
+
+.minor {
+  stroke-opacity: 0.5;
+  stroke-width: 0.5px;
+}
+
+.grid text {
+  display: none;
+}
+
+/* lines on the chart */
+.spark-line {
+  fill: none;
+  stroke: black;
+  opacity: 0.2;
+  stroke-width: 1.5;
+}
+
+.follow-text {
+    stroke: white;
+    fill: black;
+    stroke-width: 0.05;
+    font-size: 12px;
+    text-anchor: middle;
+}
+
+.region-lab {
+  font-size: 13px;
+}
+
+.x-lab, .spark-title, .main-title {
+  text-anchor: middle;
+}
+
+.x-lab, .y-lab {
+  font-size: 16px;
+}
+
+.main-title, .spark-title {
+  fill: black;
+  fill-opacity: 1;
+  font-size: 18px;
+}
+
+.x-line {
+  stroke: black;
+  stroke-width: 0.5;
+}
+
+/* time slider */
+.slider-div {
+  width: 100%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 5px;
+  background: lightgray;
+  width: calc(100% - 15px);
+  display: inline-block;
+}
+
+/* circle thumb */
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: black;
+  cursor: pointer;
+  transition: background 0.15s ease-in-out;
+}
+
+.slider-val {
+  width: 55px;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  line-height: 12px;
+  margin: auto;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: darkgray;
+}
+
+/* play-pause button */
+.play-pause {
+    text-align: center;
+    margin: auto;
+    width: 100%;
+}
+
+.group-mean-label {
+  pointer-events: none;
+} </style>
+    <script type = "text/javascript" src = "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type = "text/javascript" src = "https://d3js.org/d3.v4.min.js"></script>
+    <script type = "text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type = "text/javascript" src ="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"> </script>
+    <script type = "text/javascript" charset="utf8" src = "https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+  </head>
+  <body>
+    <!-- control panel -->
+    <div class = "control" id = "control">
+      <ul class = "menu">
+        <li class = "plot"> <span class="glyphicon glyphicon-stats"></span> Plot </li>
+        <li class = "view-tbl"><span class="glyphicon glyphicon-list-alt"></span> Table </li>
+        <li class = "reset" id = "reset"> <span class="glyphicon glyphicon-refresh"></span> Reset </li>
+        <li class = "help"><span class = "glyphicon glyphicon-question-sign"> </span> </li>
+      </ul>
+    </div>
+    <div id = "main">
+      <div class = "svg-div">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="841px" height="745px" viewBox="0 0 841 745" version="1.1">
+  <metadata xmlns:gridsvg="http://www.stat.auckland.ac.nz/~paul/R/gridSVG/">
+    <gridsvg:generator name="gridSVG" version="1.7-2" time="2020-12-22 18:33:29"/>
+    <gridsvg:argument name="name" value=""/>
+    <gridsvg:argument name="exportCoords" value="none"/>
+    <gridsvg:argument name="exportMappings" value="none"/>
+    <gridsvg:argument name="exportJS" value="none"/>
+    <gridsvg:argument name="res" value="72"/>
+    <gridsvg:argument name="prefix" value=""/>
+    <gridsvg:argument name="addClasses" value="FALSE"/>
+    <gridsvg:argument name="indent" value="TRUE"/>
+    <gridsvg:argument name="htmlWrapper" value="FALSE"/>
+    <gridsvg:argument name="usePaths" value="vpPaths"/>
+    <gridsvg:argument name="uniqueNames" value="TRUE"/>
+    <gridsvg:separator name="id.sep" value="."/>
+    <gridsvg:separator name="gPath.sep" value="::"/>
+    <gridsvg:separator name="vpPath.sep" value="::"/>
+  </metadata>
+  <g transform="translate(0, 745) scale(1, -1)">
+    <g id="gridSVG" fill="none" stroke="rgb(0,0,0)" stroke-dasharray="none" stroke-width="0.75" font-size="12" font-family="Helvetica, Arial, FreeSans, Liberation Sans, Nimbus Sans L, sans-serif" opacity="1" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-opacity="1" fill-opacity="0" font-weight="normal" font-style="normal">
+      <defs>
+        <symbol id="gridSVG.pch21" viewBox="-5 -5 10 10" overflow="visible">
+          <circle cx="0" cy="0" r="3.75"/>
+        </symbol>
+      </defs>
+      <g id="container.1" font-size="12">
+        <g id="container::VP:TOPlayout.1">
+          <g id="container::VP:TOPlayout::GRID.VP.399.1"/>
+          <g id="container::VP:TOPlayout::GRID.VP.400.1">
+            <g id="inz-main-title.1">
+              <g id="inz-main-title.1.1" transform="translate(420.5, 734.95)" stroke-width="0.1">
+                <g id="inz-main-title.1.1.scale" transform="scale(1, -1)">
+                  <text x="0" y="0" id="inz-main-title.1.1.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1" font-size="14.4">
+                    <tspan id="inz-main-title.1.1.tspan.1" dy="5.03" x="0">Played versus Total (size proportional to Total)</tspan>
+                  </text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="container.2" font-size="12">
+        <g id="container::VP:TOPlayout.2">
+          <g id="container::VP:TOPlayout::GRID.VP.401.1">
+            <g id="inz-ylab.1">
+              <g id="inz-ylab.1.1" transform="translate(8.64, 382.55)" stroke-width="0.1">
+                <g id="inz-ylab.1.1.scale" transform="scale(1, -1)">
+                  <text x="0" y="0" id="inz-ylab.1.1.text" transform="rotate(-90)" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1" font-size="12">
+                    <tspan id="inz-ylab.1.1.tspan.1" dy="4.31" x="0">Played</tspan>
+                  </text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="container.3" font-size="12">
+        <g id="container::VP:TOPlayout.3">
+          <g id="container::VP:TOPlayout::GRID.VP.402.1">
+            <g id="inz-xlab.1">
+              <g id="inz-xlab.1.1" transform="translate(399.39, 23)" stroke-width="0.1">
+                <g id="inz-xlab.1.1.scale" transform="scale(1, -1)">
+                  <text x="0" y="0" id="inz-xlab.1.1.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1" font-size="12">
+                    <tspan id="inz-xlab.1.1.tspan.1" dy="4.31" x="0">Total</tspan>
+                  </text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="container.4" font-size="12">
+        <g id="container::VP:TOPlayout.4">
+          <g id="container::VP:TOPlayout::GRID.VP.403.1">
+            <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout.1"/>
+          </g>
+        </g>
+      </g>
+      <g id="container.5" font-size="12">
+        <g id="container::VP:TOPlayout.5">
+          <g id="container::VP:TOPlayout::GRID.VP.403.2">
+            <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout.2">
+              <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404.1">
+                <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394.1">
+                  <g id="inz-leg-layout.1">
+                    <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394::GRID.VP.395.1">
+                      <g id="GRID.cellGrob.200.1">
+                        <g id="inz-leg-cont-scale.1">
+                          <polygon id="inz-leg-cont-scale.1.1" points="778.94,235.74 802.94,235.74 802.94,237.23 778.94,237.23" stroke-dasharray="none" fill="rgb(68,1,84)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.2" points="778.94,237.23 802.94,237.23 802.94,238.72 778.94,238.72" stroke-dasharray="none" fill="rgb(68,3,86)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.3" points="778.94,238.72 802.94,238.72 802.94,240.21 778.94,240.21" stroke-dasharray="none" fill="rgb(69,5,88)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.4" points="778.94,240.21 802.94,240.21 802.94,241.7 778.94,241.7" stroke-dasharray="none" fill="rgb(70,7,90)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.5" points="778.94,241.7 802.94,241.7 802.94,243.19 778.94,243.19" stroke-dasharray="none" fill="rgb(70,8,92)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.6" points="778.94,243.19 802.94,243.19 802.94,244.68 778.94,244.68" stroke-dasharray="none" fill="rgb(70,10,93)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.7" points="778.94,244.68 802.94,244.68 802.94,246.17 778.94,246.17" stroke-dasharray="none" fill="rgb(71,12,95)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.8" points="778.94,246.17 802.94,246.17 802.94,247.66 778.94,247.66" stroke-dasharray="none" fill="rgb(71,14,97)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.9" points="778.94,247.66 802.94,247.66 802.94,249.15 778.94,249.15" stroke-dasharray="none" fill="rgb(71,16,99)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.10" points="778.94,249.15 802.94,249.15 802.94,250.64 778.94,250.64" stroke-dasharray="none" fill="rgb(71,18,100)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.11" points="778.94,250.64 802.94,250.64 802.94,252.13 778.94,252.13" stroke-dasharray="none" fill="rgb(72,20,103)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.12" points="778.94,252.13 802.94,252.13 802.94,253.62 778.94,253.62" stroke-dasharray="none" fill="rgb(72,22,104)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.13" points="778.94,253.62 802.94,253.62 802.94,255.11 778.94,255.11" stroke-dasharray="none" fill="rgb(72,23,105)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.14" points="778.94,255.11 802.94,255.11 802.94,256.6 778.94,256.6" stroke-dasharray="none" fill="rgb(72,25,107)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.15" points="778.94,256.6 802.94,256.6 802.94,258.09 778.94,258.09" stroke-dasharray="none" fill="rgb(72,27,109)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.16" points="778.94,258.09 802.94,258.09 802.94,259.58 778.94,259.58" stroke-dasharray="none" fill="rgb(72,28,110)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.17" points="778.94,259.58 802.94,259.58 802.94,261.07 778.94,261.07" stroke-dasharray="none" fill="rgb(72,30,112)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.18" points="778.94,261.07 802.94,261.07 802.94,262.56 778.94,262.56" stroke-dasharray="none" fill="rgb(72,32,113)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.19" points="778.94,262.56 802.94,262.56 802.94,264.05 778.94,264.05" stroke-dasharray="none" fill="rgb(72,33,115)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.20" points="778.94,264.05 802.94,264.05 802.94,265.54 778.94,265.54" stroke-dasharray="none" fill="rgb(72,35,116)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.21" points="778.94,265.54 802.94,265.54 802.94,267.03 778.94,267.03" stroke-dasharray="none" fill="rgb(72,37,118)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.22" points="778.94,267.03 802.94,267.03 802.94,268.52 778.94,268.52" stroke-dasharray="none" fill="rgb(72,38,119)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.23" points="778.94,268.52 802.94,268.52 802.94,270.01 778.94,270.01" stroke-dasharray="none" fill="rgb(72,40,120)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.24" points="778.94,270.01 802.94,270.01 802.94,271.5 778.94,271.5" stroke-dasharray="none" fill="rgb(72,41,122)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.25" points="778.94,271.5 802.94,271.5 802.94,272.99 778.94,272.99" stroke-dasharray="none" fill="rgb(71,44,122)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.26" points="778.94,272.99 802.94,272.99 802.94,274.48 778.94,274.48" stroke-dasharray="none" fill="rgb(71,45,123)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.27" points="778.94,274.48 802.94,274.48 802.94,275.97 778.94,275.97" stroke-dasharray="none" fill="rgb(71,46,124)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.28" points="778.94,275.97 802.94,275.97 802.94,277.46 778.94,277.46" stroke-dasharray="none" fill="rgb(70,47,126)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.29" points="778.94,277.46 802.94,277.46 802.94,278.95 778.94,278.95" stroke-dasharray="none" fill="rgb(70,50,126)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.30" points="778.94,278.95 802.94,278.95 802.94,280.44 778.94,280.44" stroke-dasharray="none" fill="rgb(70,51,127)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.31" points="778.94,280.44 802.94,280.44 802.94,281.93 778.94,281.93" stroke-dasharray="none" fill="rgb(70,52,129)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.32" points="778.94,281.93 802.94,281.93 802.94,283.42 778.94,283.42" stroke-dasharray="none" fill="rgb(69,54,129)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.33" points="778.94,283.42 802.94,283.42 802.94,284.91 778.94,284.91" stroke-dasharray="none" fill="rgb(69,56,130)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.34" points="778.94,284.91 802.94,284.91 802.94,286.4 778.94,286.4" stroke-dasharray="none" fill="rgb(68,57,131)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.35" points="778.94,286.4 802.94,286.4 802.94,287.89 778.94,287.89" stroke-dasharray="none" fill="rgb(68,58,132)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.36" points="778.94,287.89 802.94,287.89 802.94,289.38 778.94,289.38" stroke-dasharray="none" fill="rgb(67,61,132)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.37" points="778.94,289.38 802.94,289.38 802.94,290.87 778.94,290.87" stroke-dasharray="none" fill="rgb(67,62,133)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.38" points="778.94,290.87 802.94,290.87 802.94,292.36 778.94,292.36" stroke-dasharray="none" fill="rgb(66,63,133)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.39" points="778.94,292.36 802.94,292.36 802.94,293.85 778.94,293.85" stroke-dasharray="none" fill="rgb(66,65,134)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.40" points="778.94,293.85 802.94,293.85 802.94,295.34 778.94,295.34" stroke-dasharray="none" fill="rgb(65,66,135)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.41" points="778.94,295.34 802.94,295.34 802.94,296.83 778.94,296.83" stroke-dasharray="none" fill="rgb(65,68,135)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.42" points="778.94,296.83 802.94,296.83 802.94,298.32 778.94,298.32" stroke-dasharray="none" fill="rgb(64,70,136)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.43" points="778.94,298.32 802.94,298.32 802.94,299.81 778.94,299.81" stroke-dasharray="none" fill="rgb(63,71,136)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.44" points="778.94,299.81 802.94,299.81 802.94,301.3 778.94,301.3" stroke-dasharray="none" fill="rgb(63,72,137)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.45" points="778.94,301.3 802.94,301.3 802.94,302.79 778.94,302.79" stroke-dasharray="none" fill="rgb(62,73,137)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.46" points="778.94,302.79 802.94,302.79 802.94,304.28 778.94,304.28" stroke-dasharray="none" fill="rgb(62,75,138)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.47" points="778.94,304.28 802.94,304.28 802.94,305.77 778.94,305.77" stroke-dasharray="none" fill="rgb(61,77,138)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.48" points="778.94,305.77 802.94,305.77 802.94,307.26 778.94,307.26" stroke-dasharray="none" fill="rgb(61,78,138)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.49" points="778.94,307.26 802.94,307.26 802.94,308.75 778.94,308.75" stroke-dasharray="none" fill="rgb(60,80,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.50" points="778.94,308.75 802.94,308.75 802.94,310.24 778.94,310.24" stroke-dasharray="none" fill="rgb(59,81,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.51" points="778.94,310.24 802.94,310.24 802.94,311.73 778.94,311.73" stroke-dasharray="none" fill="rgb(59,82,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.52" points="778.94,311.73 802.94,311.73 802.94,313.22 778.94,313.22" stroke-dasharray="none" fill="rgb(58,83,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.53" points="778.94,313.22 802.94,313.22 802.94,314.71 778.94,314.71" stroke-dasharray="none" fill="rgb(57,85,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.54" points="778.94,314.71 802.94,314.71 802.94,316.2 778.94,316.2" stroke-dasharray="none" fill="rgb(57,86,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.55" points="778.94,316.2 802.94,316.2 802.94,317.69 778.94,317.69" stroke-dasharray="none" fill="rgb(56,88,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.56" points="778.94,317.69 802.94,317.69 802.94,319.18 778.94,319.18" stroke-dasharray="none" fill="rgb(56,89,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.57" points="778.94,319.18 802.94,319.18 802.94,320.67 778.94,320.67" stroke-dasharray="none" fill="rgb(55,91,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.58" points="778.94,320.67 802.94,320.67 802.94,322.16 778.94,322.16" stroke-dasharray="none" fill="rgb(54,92,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.59" points="778.94,322.16 802.94,322.16 802.94,323.65 778.94,323.65" stroke-dasharray="none" fill="rgb(54,93,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.60" points="778.94,323.65 802.94,323.65 802.94,325.14 778.94,325.14" stroke-dasharray="none" fill="rgb(53,95,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.61" points="778.94,325.14 802.94,325.14 802.94,326.63 778.94,326.63" stroke-dasharray="none" fill="rgb(52,96,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.62" points="778.94,326.63 802.94,326.63 802.94,328.12 778.94,328.12" stroke-dasharray="none" fill="rgb(52,97,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.63" points="778.94,328.12 802.94,328.12 802.94,329.61 778.94,329.61" stroke-dasharray="none" fill="rgb(51,98,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.64" points="778.94,329.61 802.94,329.61 802.94,331.1 778.94,331.1" stroke-dasharray="none" fill="rgb(50,100,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.65" points="778.94,331.1 802.94,331.1 802.94,332.59 778.94,332.59" stroke-dasharray="none" fill="rgb(50,101,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.66" points="778.94,332.59 802.94,332.59 802.94,334.08 778.94,334.08" stroke-dasharray="none" fill="rgb(49,102,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.67" points="778.94,334.08 802.94,334.08 802.94,335.57 778.94,335.57" stroke-dasharray="none" fill="rgb(49,104,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.68" points="778.94,335.57 802.94,335.57 802.94,337.06 778.94,337.06" stroke-dasharray="none" fill="rgb(48,105,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.69" points="778.94,337.06 802.94,337.06 802.94,338.55 778.94,338.55" stroke-dasharray="none" fill="rgb(48,106,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.70" points="778.94,338.55 802.94,338.55 802.94,340.04 778.94,340.04" stroke-dasharray="none" fill="rgb(47,107,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.71" points="778.94,340.04 802.94,340.04 802.94,341.53 778.94,341.53" stroke-dasharray="none" fill="rgb(46,109,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.72" points="778.94,341.53 802.94,341.53 802.94,343.02 778.94,343.02" stroke-dasharray="none" fill="rgb(46,110,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.73" points="778.94,343.02 802.94,343.02 802.94,344.51 778.94,344.51" stroke-dasharray="none" fill="rgb(46,111,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.74" points="778.94,344.51 802.94,344.51 802.94,346 778.94,346" stroke-dasharray="none" fill="rgb(45,113,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.75" points="778.94,346 802.94,346 802.94,347.49 778.94,347.49" stroke-dasharray="none" fill="rgb(44,113,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.76" points="778.94,347.49 802.94,347.49 802.94,348.98 778.94,348.98" stroke-dasharray="none" fill="rgb(44,114,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.77" points="778.94,348.98 802.94,348.98 802.94,350.47 778.94,350.47" stroke-dasharray="none" fill="rgb(44,115,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.78" points="778.94,350.47 802.94,350.47 802.94,351.96 778.94,351.96" stroke-dasharray="none" fill="rgb(43,117,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.79" points="778.94,351.96 802.94,351.96 802.94,353.45 778.94,353.45" stroke-dasharray="none" fill="rgb(42,118,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.80" points="778.94,353.45 802.94,353.45 802.94,354.94 778.94,354.94" stroke-dasharray="none" fill="rgb(42,119,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.81" points="778.94,354.94 802.94,354.94 802.94,356.43 778.94,356.43" stroke-dasharray="none" fill="rgb(41,121,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.82" points="778.94,356.43 802.94,356.43 802.94,357.92 778.94,357.92" stroke-dasharray="none" fill="rgb(41,122,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.83" points="778.94,357.92 802.94,357.92 802.94,359.41 778.94,359.41" stroke-dasharray="none" fill="rgb(41,123,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.84" points="778.94,359.41 802.94,359.41 802.94,360.9 778.94,360.9" stroke-dasharray="none" fill="rgb(40,124,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.85" points="778.94,360.9 802.94,360.9 802.94,362.39 778.94,362.39" stroke-dasharray="none" fill="rgb(39,126,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.86" points="778.94,362.39 802.94,362.39 802.94,363.88 778.94,363.88" stroke-dasharray="none" fill="rgb(39,127,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.87" points="778.94,363.88 802.94,363.88 802.94,365.37 778.94,365.37" stroke-dasharray="none" fill="rgb(39,128,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.88" points="778.94,365.37 802.94,365.37 802.94,366.86 778.94,366.86" stroke-dasharray="none" fill="rgb(38,130,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.89" points="778.94,366.86 802.94,366.86 802.94,368.35 778.94,368.35" stroke-dasharray="none" fill="rgb(38,130,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.90" points="778.94,368.35 802.94,368.35 802.94,369.84 778.94,369.84" stroke-dasharray="none" fill="rgb(37,131,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.91" points="778.94,369.84 802.94,369.84 802.94,371.33 778.94,371.33" stroke-dasharray="none" fill="rgb(37,132,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.92" points="778.94,371.33 802.94,371.33 802.94,372.82 778.94,372.82" stroke-dasharray="none" fill="rgb(36,134,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.93" points="778.94,372.82 802.94,372.82 802.94,374.31 778.94,374.31" stroke-dasharray="none" fill="rgb(36,135,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.94" points="778.94,374.31 802.94,374.31 802.94,375.8 778.94,375.8" stroke-dasharray="none" fill="rgb(35,136,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.95" points="778.94,375.8 802.94,375.8 802.94,377.29 778.94,377.29" stroke-dasharray="none" fill="rgb(35,137,142)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.96" points="778.94,377.29 802.94,377.29 802.94,378.78 778.94,378.78" stroke-dasharray="none" fill="rgb(34,139,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.97" points="778.94,378.78 802.94,378.78 802.94,380.27 778.94,380.27" stroke-dasharray="none" fill="rgb(34,140,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.98" points="778.94,380.27 802.94,380.27 802.94,381.76 778.94,381.76" stroke-dasharray="none" fill="rgb(34,141,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.99" points="778.94,381.76 802.94,381.76 802.94,383.25 778.94,383.25" stroke-dasharray="none" fill="rgb(33,143,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.100" points="778.94,383.25 802.94,383.25 802.94,384.74 778.94,384.74" stroke-dasharray="none" fill="rgb(33,144,141)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.101" points="778.94,384.74 802.94,384.74 802.94,386.23 778.94,386.23" stroke-dasharray="none" fill="rgb(33,145,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.102" points="778.94,386.23 802.94,386.23 802.94,387.72 778.94,387.72" stroke-dasharray="none" fill="rgb(32,146,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.103" points="778.94,387.72 802.94,387.72 802.94,389.21 778.94,389.21" stroke-dasharray="none" fill="rgb(32,147,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.104" points="778.94,389.21 802.94,389.21 802.94,390.7 778.94,390.7" stroke-dasharray="none" fill="rgb(31,148,140)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.105" points="778.94,390.7 802.94,390.7 802.94,392.19 778.94,392.19" stroke-dasharray="none" fill="rgb(31,149,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.106" points="778.94,392.19 802.94,392.19 802.94,393.68 778.94,393.68" stroke-dasharray="none" fill="rgb(31,151,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.107" points="778.94,393.68 802.94,393.68 802.94,395.17 778.94,395.17" stroke-dasharray="none" fill="rgb(31,152,139)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.108" points="778.94,395.17 802.94,395.17 802.94,396.66 778.94,396.66" stroke-dasharray="none" fill="rgb(31,153,138)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.109" points="778.94,396.66 802.94,396.66 802.94,398.15 778.94,398.15" stroke-dasharray="none" fill="rgb(31,154,138)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.110" points="778.94,398.15 802.94,398.15 802.94,399.64 778.94,399.64" stroke-dasharray="none" fill="rgb(30,156,137)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.111" points="778.94,399.64 802.94,399.64 802.94,401.13 778.94,401.13" stroke-dasharray="none" fill="rgb(30,157,137)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.112" points="778.94,401.13 802.94,401.13 802.94,402.62 778.94,402.62" stroke-dasharray="none" fill="rgb(31,158,137)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.113" points="778.94,402.62 802.94,402.62 802.94,404.11 778.94,404.11" stroke-dasharray="none" fill="rgb(31,159,136)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.114" points="778.94,404.11 802.94,404.11 802.94,405.6 778.94,405.6" stroke-dasharray="none" fill="rgb(31,161,136)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.115" points="778.94,405.6 802.94,405.6 802.94,407.09 778.94,407.09" stroke-dasharray="none" fill="rgb(31,161,135)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.116" points="778.94,407.09 802.94,407.09 802.94,408.58 778.94,408.58" stroke-dasharray="none" fill="rgb(31,162,135)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.117" points="778.94,408.58 802.94,408.58 802.94,410.07 778.94,410.07" stroke-dasharray="none" fill="rgb(32,164,134)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.118" points="778.94,410.07 802.94,410.07 802.94,411.56 778.94,411.56" stroke-dasharray="none" fill="rgb(33,165,133)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.119" points="778.94,411.56 802.94,411.56 802.94,413.05 778.94,413.05" stroke-dasharray="none" fill="rgb(33,166,133)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.120" points="778.94,413.05 802.94,413.05 802.94,414.54 778.94,414.54" stroke-dasharray="none" fill="rgb(34,167,133)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.121" points="778.94,414.54 802.94,414.54 802.94,416.03 778.94,416.03" stroke-dasharray="none" fill="rgb(35,169,131)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.122" points="778.94,416.03 802.94,416.03 802.94,417.52 778.94,417.52" stroke-dasharray="none" fill="rgb(36,170,131)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.123" points="778.94,417.52 802.94,417.52 802.94,419.01 778.94,419.01" stroke-dasharray="none" fill="rgb(37,171,130)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.124" points="778.94,419.01 802.94,419.01 802.94,420.5 778.94,420.5" stroke-dasharray="none" fill="rgb(38,173,129)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.125" points="778.94,420.5 802.94,420.5 802.94,421.99 778.94,421.99" stroke-dasharray="none" fill="rgb(39,173,129)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.126" points="778.94,421.99 802.94,421.99 802.94,423.48 778.94,423.48" stroke-dasharray="none" fill="rgb(40,174,128)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.127" points="778.94,423.48 802.94,423.48 802.94,424.97 778.94,424.97" stroke-dasharray="none" fill="rgb(41,175,127)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.128" points="778.94,424.97 802.94,424.97 802.94,426.46 778.94,426.46" stroke-dasharray="none" fill="rgb(44,177,126)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.129" points="778.94,426.46 802.94,426.46 802.94,427.95 778.94,427.95" stroke-dasharray="none" fill="rgb(45,178,125)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.130" points="778.94,427.95 802.94,427.95 802.94,429.44 778.94,429.44" stroke-dasharray="none" fill="rgb(46,179,124)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.131" points="778.94,429.44 802.94,429.44 802.94,430.93 778.94,430.93" stroke-dasharray="none" fill="rgb(48,181,123)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.132" points="778.94,430.93 802.94,430.93 802.94,432.42 778.94,432.42" stroke-dasharray="none" fill="rgb(50,182,122)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.133" points="778.94,432.42 802.94,432.42 802.94,433.91 778.94,433.91" stroke-dasharray="none" fill="rgb(52,182,121)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.134" points="778.94,433.91 802.94,433.91 802.94,435.4 778.94,435.4" stroke-dasharray="none" fill="rgb(54,183,121)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.135" points="778.94,435.4 802.94,435.4 802.94,436.89 778.94,436.89" stroke-dasharray="none" fill="rgb(56,185,119)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.136" points="778.94,436.89 802.94,436.89 802.94,438.38 778.94,438.38" stroke-dasharray="none" fill="rgb(58,186,118)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.137" points="778.94,438.38 802.94,438.38 802.94,439.87 778.94,439.87" stroke-dasharray="none" fill="rgb(59,187,117)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.138" points="778.94,439.87 802.94,439.87 802.94,441.36 778.94,441.36" stroke-dasharray="none" fill="rgb(62,188,115)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.139" points="778.94,441.36 802.94,441.36 802.94,442.85 778.94,442.85" stroke-dasharray="none" fill="rgb(64,189,114)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.140" points="778.94,442.85 802.94,442.85 802.94,444.34 778.94,444.34" stroke-dasharray="none" fill="rgb(66,190,113)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.141" points="778.94,444.34 802.94,444.34 802.94,445.83 778.94,445.83" stroke-dasharray="none" fill="rgb(69,191,112)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.142" points="778.94,445.83 802.94,445.83 802.94,447.32 778.94,447.32" stroke-dasharray="none" fill="rgb(71,193,110)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.143" points="778.94,447.32 802.94,447.32 802.94,448.81 778.94,448.81" stroke-dasharray="none" fill="rgb(74,193,109)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.144" points="778.94,448.81 802.94,448.81 802.94,450.3 778.94,450.3" stroke-dasharray="none" fill="rgb(76,194,108)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.145" points="778.94,450.3 802.94,450.3 802.94,451.79 778.94,451.79" stroke-dasharray="none" fill="rgb(79,195,106)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.146" points="778.94,451.79 802.94,451.79 802.94,453.28 778.94,453.28" stroke-dasharray="none" fill="rgb(82,197,105)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.147" points="778.94,453.28 802.94,453.28 802.94,454.77 778.94,454.77" stroke-dasharray="none" fill="rgb(84,197,104)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.148" points="778.94,454.77 802.94,454.77 802.94,456.26 778.94,456.26" stroke-dasharray="none" fill="rgb(87,198,102)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.149" points="778.94,456.26 802.94,456.26 802.94,457.75 778.94,457.75" stroke-dasharray="none" fill="rgb(89,200,100)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.150" points="778.94,457.75 802.94,457.75 802.94,459.24 778.94,459.24" stroke-dasharray="none" fill="rgb(92,200,99)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.151" points="778.94,459.24 802.94,459.24 802.94,460.73 778.94,460.73" stroke-dasharray="none" fill="rgb(94,201,98)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.152" points="778.94,460.73 802.94,460.73 802.94,462.22 778.94,462.22" stroke-dasharray="none" fill="rgb(97,203,95)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.153" points="778.94,462.22 802.94,462.22 802.94,463.71 778.94,463.71" stroke-dasharray="none" fill="rgb(101,203,94)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.154" points="778.94,463.71 802.94,463.71 802.94,465.2 778.94,465.2" stroke-dasharray="none" fill="rgb(103,204,92)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.155" points="778.94,465.2 802.94,465.2 802.94,466.69 778.94,466.69" stroke-dasharray="none" fill="rgb(106,205,91)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.156" points="778.94,466.69 802.94,466.69 802.94,468.18 778.94,468.18" stroke-dasharray="none" fill="rgb(109,206,89)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.157" points="778.94,468.18 802.94,468.18 802.94,469.67 778.94,469.67" stroke-dasharray="none" fill="rgb(112,207,87)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.158" points="778.94,469.67 802.94,469.67 802.94,471.16 778.94,471.16" stroke-dasharray="none" fill="rgb(115,208,86)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.159" points="778.94,471.16 802.94,471.16 802.94,472.65 778.94,472.65" stroke-dasharray="none" fill="rgb(118,208,84)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.160" points="778.94,472.65 802.94,472.65 802.94,474.14 778.94,474.14" stroke-dasharray="none" fill="rgb(121,209,81)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.161" points="778.94,474.14 802.94,474.14 802.94,475.63 778.94,475.63" stroke-dasharray="none" fill="rgb(124,210,80)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.162" points="778.94,475.63 802.94,475.63 802.94,477.12 778.94,477.12" stroke-dasharray="none" fill="rgb(128,211,78)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.163" points="778.94,477.12 802.94,477.12 802.94,478.61 778.94,478.61" stroke-dasharray="none" fill="rgb(131,211,76)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.164" points="778.94,478.61 802.94,478.61 802.94,480.1 778.94,480.1" stroke-dasharray="none" fill="rgb(134,213,73)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.165" points="778.94,480.1 802.94,480.1 802.94,481.59 778.94,481.59" stroke-dasharray="none" fill="rgb(137,213,72)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.166" points="778.94,481.59 802.94,481.59 802.94,483.08 778.94,483.08" stroke-dasharray="none" fill="rgb(140,214,70)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.167" points="778.94,483.08 802.94,483.08 802.94,484.57 778.94,484.57" stroke-dasharray="none" fill="rgb(143,215,68)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.168" points="778.94,484.57 802.94,484.57 802.94,486.06 778.94,486.06" stroke-dasharray="none" fill="rgb(147,215,65)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.169" points="778.94,486.06 802.94,486.06 802.94,487.55 778.94,487.55" stroke-dasharray="none" fill="rgb(150,216,64)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.170" points="778.94,487.55 802.94,487.55 802.94,489.04 778.94,489.04" stroke-dasharray="none" fill="rgb(154,217,61)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.171" points="778.94,489.04 802.94,489.04 802.94,490.53 778.94,490.53" stroke-dasharray="none" fill="rgb(157,217,59)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.172" points="778.94,490.53 802.94,490.53 802.94,492.02 778.94,492.02" stroke-dasharray="none" fill="rgb(160,218,57)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.173" points="778.94,492.02 802.94,492.02 802.94,493.51 778.94,493.51" stroke-dasharray="none" fill="rgb(163,218,55)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.174" points="778.94,493.51 802.94,493.51 802.94,495 778.94,495" stroke-dasharray="none" fill="rgb(167,219,53)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.175" points="778.94,495 802.94,495 802.94,496.49 778.94,496.49" stroke-dasharray="none" fill="rgb(170,220,50)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.176" points="778.94,496.49 802.94,496.49 802.94,497.98 778.94,497.98" stroke-dasharray="none" fill="rgb(174,220,48)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.177" points="778.94,497.98 802.94,497.98 802.94,499.47 778.94,499.47" stroke-dasharray="none" fill="rgb(177,221,46)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.178" points="778.94,499.47 802.94,499.47 802.94,500.96 778.94,500.96" stroke-dasharray="none" fill="rgb(180,222,43)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.179" points="778.94,500.96 802.94,500.96 802.94,502.45 778.94,502.45" stroke-dasharray="none" fill="rgb(184,222,41)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.180" points="778.94,502.45 802.94,502.45 802.94,503.94 778.94,503.94" stroke-dasharray="none" fill="rgb(187,222,39)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.181" points="778.94,503.94 802.94,503.94 802.94,505.43 778.94,505.43" stroke-dasharray="none" fill="rgb(191,223,37)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.182" points="778.94,505.43 802.94,505.43 802.94,506.92 778.94,506.92" stroke-dasharray="none" fill="rgb(194,223,35)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.183" points="778.94,506.92 802.94,506.92 802.94,508.41 778.94,508.41" stroke-dasharray="none" fill="rgb(198,224,33)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.184" points="778.94,508.41 802.94,508.41 802.94,509.9 778.94,509.9" stroke-dasharray="none" fill="rgb(201,224,32)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.185" points="778.94,509.9 802.94,509.9 802.94,511.39 778.94,511.39" stroke-dasharray="none" fill="rgb(204,225,29)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.186" points="778.94,511.39 802.94,511.39 802.94,512.88 778.94,512.88" stroke-dasharray="none" fill="rgb(208,225,28)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.187" points="778.94,512.88 802.94,512.88 802.94,514.37 778.94,514.37" stroke-dasharray="none" fill="rgb(211,226,27)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.188" points="778.94,514.37 802.94,514.37 802.94,515.86 778.94,515.86" stroke-dasharray="none" fill="rgb(215,226,25)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.189" points="778.94,515.86 802.94,515.86 802.94,517.35 778.94,517.35" stroke-dasharray="none" fill="rgb(218,227,25)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.190" points="778.94,517.35 802.94,517.35 802.94,518.84 778.94,518.84" stroke-dasharray="none" fill="rgb(221,227,24)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.191" points="778.94,518.84 802.94,518.84 802.94,520.33 778.94,520.33" stroke-dasharray="none" fill="rgb(224,227,24)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.192" points="778.94,520.33 802.94,520.33 802.94,521.82 778.94,521.82" stroke-dasharray="none" fill="rgb(228,228,25)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.193" points="778.94,521.82 802.94,521.82 802.94,523.31 778.94,523.31" stroke-dasharray="none" fill="rgb(231,228,25)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.194" points="778.94,523.31 802.94,523.31 802.94,524.8 778.94,524.8" stroke-dasharray="none" fill="rgb(235,229,26)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.195" points="778.94,524.8 802.94,524.8 802.94,526.29 778.94,526.29" stroke-dasharray="none" fill="rgb(238,229,28)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.196" points="778.94,526.29 802.94,526.29 802.94,527.78 778.94,527.78" stroke-dasharray="none" fill="rgb(241,229,29)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.197" points="778.94,527.78 802.94,527.78 802.94,529.27 778.94,529.27" stroke-dasharray="none" fill="rgb(244,230,30)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.198" points="778.94,529.27 802.94,529.27 802.94,530.76 778.94,530.76" stroke-dasharray="none" fill="rgb(247,230,32)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.199" points="778.94,530.76 802.94,530.76 802.94,532.25 778.94,532.25" stroke-dasharray="none" fill="rgb(250,231,34)" stroke="none" fill-opacity="1"/>
+                          <polygon id="inz-leg-cont-scale.1.200" points="778.94,532.25 802.94,532.25 802.94,533.74 778.94,533.74" stroke-dasharray="none" fill="rgb(253,231,37)" stroke="none" fill-opacity="1"/>
+                        </g>
+                      </g>
+                    </g>
+                    <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394::GRID.VP.396.1">
+                      <g id="GRID.cellGrob.201.1">
+                        <g id="inz-leg-rect-tp-cont.1">
+                          <rect id="inz-leg-rect-tp-cont.1.1" x="778.94" y="235.74" width="24" height="298" transform="" fill="none" fill-opacity="0"/>
+                        </g>
+                      </g>
+                    </g>
+                    <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394::GRID.VP.397.1">
+                      <g id="GRID.cellGrob.202.1">
+                        <g id="inz-leg-cont-title.1">
+                          <g id="inz-leg-cont-title.1.1" transform="translate(803.37, 549.55)" stroke-width="0.1">
+                            <g id="inz-leg-cont-title.1.1.scale" transform="scale(1, -1)">
+                              <text x="0" y="0" id="inz-leg-cont-title.1.1.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1" font-size="12">
+                                <tspan id="inz-leg-cont-title.1.1.tspan.1" dy="4.31" x="0">Avg</tspan>
+                              </text>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                    <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394::GRID.VP.398.1">
+                      <g id="GRID.cellGrob.203.1">
+                        <g id="container::VP:TOPlayout::GRID.VP.403::VP:LEGlayout::GRID.VP.404::GRID.VP.394::GRID.VP.398::GRID.VP.393.1">
+                          <g id="GRID.yaxis.198.1" font-size="9.6">
+                            <g id="major.1">
+                              <polyline id="major.1.1" points="802.94,235.74 802.94,533.74" fill="none"/>
+                            </g>
+                            <g id="ticks.1">
+                              <polyline id="ticks.1.1" points="802.94,235.74 810.14,235.74" fill="none"/>
+                              <polyline id="ticks.1.2" points="802.94,295.34 810.14,295.34" fill="none"/>
+                              <polyline id="ticks.1.3" points="802.94,354.94 810.14,354.94" fill="none"/>
+                              <polyline id="ticks.1.4" points="802.94,414.54 810.14,414.54" fill="none"/>
+                              <polyline id="ticks.1.5" points="802.94,474.14 810.14,474.14" fill="none"/>
+                              <polyline id="ticks.1.6" points="802.94,533.74 810.14,533.74" fill="none"/>
+                            </g>
+                            <g id="labels.1">
+                              <g id="labels.1.1" transform="translate(817.34, 235.74)" stroke-width="0.1">
+                                <g id="labels.1.1.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.1.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.1.tspan.1" dy="4.31" x="0">1</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                              <g id="labels.1.2" transform="translate(817.34, 295.34)" stroke-width="0.1">
+                                <g id="labels.1.2.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.2.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.2.tspan.1" dy="4.31" x="0">2</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                              <g id="labels.1.3" transform="translate(817.34, 354.94)" stroke-width="0.1">
+                                <g id="labels.1.3.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.3.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.3.tspan.1" dy="4.31" x="0">3</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                              <g id="labels.1.4" transform="translate(817.34, 414.54)" stroke-width="0.1">
+                                <g id="labels.1.4.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.4.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.4.tspan.1" dy="4.31" x="0">4</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                              <g id="labels.1.5" transform="translate(817.34, 474.14)" stroke-width="0.1">
+                                <g id="labels.1.5.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.5.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.5.tspan.1" dy="4.31" x="0">5</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                              <g id="labels.1.6" transform="translate(817.34, 533.74)" stroke-width="0.1">
+                                <g id="labels.1.6.scale" transform="scale(1, -1)">
+                                  <text x="0" y="0" id="labels.1.6.text" text-anchor="start" fill="rgb(0,0,0)" fill-opacity="1">
+                                    <tspan id="labels.1.6.tspan.1" dy="4.31" x="0">6</tspan>
+                                  </text>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="container.6" font-size="12">
+        <g id="container::VP:TOPlayout.6">
+          <g id="container::VP:TOPlayout::GRID.VP.405.1">
+            <g id="inz-main-sub-bottom.1">
+              <g id="inz-main-sub-bottom.1.1" transform="translate(399.39, 7.18)" stroke-width="0.1">
+                <g id="inz-main-sub-bottom.1.1.scale" transform="scale(1, -1)">
+                  <text x="0" y="0" id="inz-main-sub-bottom.1.1.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1" font-size="9.6">
+                    <tspan id="inz-main-sub-bottom.1.1.tspan.1" dy="3.59" x="0">5 missing values (5 in Total, 5 in Played)</tspan>
+                  </text>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <g id="container.7" font-size="12">
+        <g id="container::VP:TOPlayout.7">
+          <g id="container::VP:TOPlayout::GRID.VP.406.1">
+            <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout.1"/>
+          </g>
+        </g>
+      </g>
+      <g id="container.8" font-size="12">
+        <g id="container::VP:TOPlayout.8">
+          <g id="container::VP:TOPlayout::GRID.VP.406.2">
+            <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout.2">
+              <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407.1" font-size="14.4">
+                <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408.1">
+                  <defs>
+                    <clipPath id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::VP:locate.these.points.1.clipPath">
+                      <rect x="48.89" y="63.25" width="701.01" height="638.61" fill="none" stroke="none"/>
+                    </clipPath>
+                  </defs>
+                  <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::VP:locate.these.points.1" clip-path="url(#container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::VP:locate.these.points.1.clipPath)">
+                    <g id="inz-plot-bg.1.1.1">
+                      <rect id="inz-plot-bg.1.1.1.1" x="48.89" y="63.25" width="701.01" height="638.61" transform="" fill="rgb(238,238,238)" stroke-dasharray="none" fill-opacity="1"/>
+                    </g>
+                    <g id="inz-x-grid.1.1.1">
+                      <polyline id="inz-x-grid.1.1.1.1" points="78.58,63.25 78.58,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.2" points="187.33,63.25 187.33,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.3" points="296.08,63.25 296.08,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.4" points="404.83,63.25 404.83,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.5" points="513.58,63.25 513.58,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.6" points="622.33,63.25 622.33,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-x-grid.1.1.1.7" points="731.08,63.25 731.08,701.86" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                    </g>
+                    <g id="inz-y-grid.1.1.1">
+                      <polyline id="inz-y-grid.1.1.1.1" points="48.89,80.18 749.9,80.18" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-y-grid.1.1.1.2" points="48.89,201.13 749.9,201.13" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-y-grid.1.1.1.3" points="48.89,322.08 749.9,322.08" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-y-grid.1.1.1.4" points="48.89,443.03 749.9,443.03" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-y-grid.1.1.1.5" points="48.89,563.97 749.9,563.97" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                      <polyline id="inz-y-grid.1.1.1.6" points="48.89,684.92 749.9,684.92" stroke="rgb(255,255,255)" stroke-width="0.75" stroke-opacity="1" fill="none"/>
+                    </g>
+                    <g id="inz-SCATTERPOINTS.1.1.1">
+                      <use id="inz-SCATTERPOINTS.1.1.1.1" href="#gridSVG.pch21" x="222.13" y="225.32" width="22.51" height="22.51" transform=" translate(-11.26,-11.26)" stroke="rgb(187,222,39)" stroke-width="0.67" opacity="0.3" fill="rgb(187,222,39)" stroke-opacity="1" fill-opacity="1" font-size="18.76"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.2" href="#gridSVG.pch21" x="82.93" y="104.37" width="3.92" height="3.92" transform=" translate(-1.96,-1.96)" stroke="rgb(68,1,84)" stroke-width="3.83" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="3.27"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.3" href="#gridSVG.pch21" x="652.78" y="612.35" width="45.03" height="45.03" transform=" translate(-22.51,-22.51)" stroke="rgb(253,231,37)" stroke-width="0.33" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="37.52"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.4" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.5" href="#gridSVG.pch21" x="80.75" y="92.28" width="2.77" height="2.77" transform=" translate(-1.39,-1.39)" stroke="rgb(68,1,84)" stroke-width="5.41" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="2.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.6" href="#gridSVG.pch21" x="80.75" y="92.28" width="2.77" height="2.77" transform=" translate(-1.39,-1.39)" stroke="rgb(68,1,84)" stroke-width="5.41" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="2.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.7" href="#gridSVG.pch21" x="328.7" y="346.27" width="29.72" height="29.72" transform=" translate(-14.86,-14.86)" stroke="rgb(147,215,65)" stroke-width="0.5" opacity="0.3" fill="rgb(147,215,65)" stroke-opacity="1" fill-opacity="1" font-size="24.76"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.8" href="#gridSVG.pch21" x="104.68" y="104.37" width="9.6" height="9.6" transform=" translate(-4.8,-4.8)" stroke="rgb(253,231,37)" stroke-width="1.56" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.9" href="#gridSVG.pch21" x="185.15" y="189.03" width="19.4" height="19.4" transform=" translate(-9.7,-9.7)" stroke="rgb(174,220,48)" stroke-width="0.77" opacity="0.3" fill="rgb(174,220,48)" stroke-opacity="1" fill-opacity="1" font-size="16.16"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.10" href="#gridSVG.pch21" x="100.33" y="116.47" width="8.76" height="8.76" transform=" translate(-4.38,-4.38)" stroke="rgb(36,134,142)" stroke-width="1.71" opacity="0.3" fill="rgb(36,134,142)" stroke-opacity="1" fill-opacity="1" font-size="7.3"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.11" href="#gridSVG.pch21" x="111.2" y="116.47" width="10.73" height="10.73" transform=" translate(-5.37,-5.37)" stroke="rgb(121,209,81)" stroke-width="1.4" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="8.94"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.12" href="#gridSVG.pch21" x="335.23" y="382.55" width="30.1" height="30.1" transform=" translate(-15.05,-15.05)" stroke="rgb(87,198,102)" stroke-width="0.5" opacity="0.3" fill="rgb(87,198,102)" stroke-opacity="1" fill-opacity="1" font-size="25.09"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.13" href="#gridSVG.pch21" x="478.78" y="539.79" width="37.59" height="37.59" transform=" translate(-18.79,-18.79)" stroke="rgb(97,203,95)" stroke-width="0.4" opacity="0.3" fill="rgb(97,203,95)" stroke-opacity="1" fill-opacity="1" font-size="31.32"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.14" href="#gridSVG.pch21" x="206.9" y="261.6" width="21.29" height="21.29" transform=" translate(-10.64,-10.64)" stroke="rgb(31,162,135)" stroke-width="0.7" opacity="0.3" fill="rgb(31,162,135)" stroke-opacity="1" fill-opacity="1" font-size="17.74"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.15" href="#gridSVG.pch21" x="230.83" y="249.51" width="23.18" height="23.18" transform=" translate(-11.59,-11.59)" stroke="rgb(121,209,81)" stroke-width="0.65" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="19.32"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.16" href="#gridSVG.pch21" x="117.73" y="116.47" width="11.76" height="11.76" transform=" translate(-5.88,-5.88)" stroke="rgb(253,231,37)" stroke-width="1.28" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="9.8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.17" href="#gridSVG.pch21" x="191.68" y="273.7" width="19.98" height="19.98" transform=" translate(-9.99,-9.99)" stroke="rgb(36,134,142)" stroke-width="0.75" opacity="0.3" fill="rgb(36,134,142)" stroke-opacity="1" fill-opacity="1" font-size="16.65"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.18" href="#gridSVG.pch21" x="148.18" y="189.03" width="15.68" height="15.68" transform=" translate(-7.84,-7.84)" stroke="rgb(31,148,140)" stroke-width="0.96" opacity="0.3" fill="rgb(31,148,140)" stroke-opacity="1" fill-opacity="1" font-size="13.06"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.19" href="#gridSVG.pch21" x="128.6" y="201.13" width="13.29" height="13.29" transform=" translate(-6.64,-6.64)" stroke="rgb(58,83,139)" stroke-width="1.13" opacity="0.3" fill="rgb(58,83,139)" stroke-opacity="1" fill-opacity="1" font-size="11.07"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.20" href="#gridSVG.pch21" x="150.35" y="189.03" width="15.92" height="15.92" transform=" translate(-7.96,-7.96)" stroke="rgb(31,153,138)" stroke-width="0.94" opacity="0.3" fill="rgb(31,153,138)" stroke-opacity="1" fill-opacity="1" font-size="13.27"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.21" href="#gridSVG.pch21" x="378.73" y="358.36" width="32.55" height="32.55" transform=" translate(-16.28,-16.28)" stroke="rgb(253,231,37)" stroke-width="0.46" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="27.13"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.22" href="#gridSVG.pch21" x="704.98" y="672.83" width="47.03" height="47.03" transform=" translate(-23.51,-23.51)" stroke="rgb(241,229,29)" stroke-width="0.32" opacity="0.3" fill="rgb(241,229,29)" stroke-opacity="1" fill-opacity="1" font-size="39.19"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.23" href="#gridSVG.pch21" x="80.75" y="92.28" width="2.77" height="2.77" transform=" translate(-1.39,-1.39)" stroke="rgb(68,1,84)" stroke-width="5.41" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="2.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.24" href="#gridSVG.pch21" x="111.2" y="116.47" width="10.73" height="10.73" transform=" translate(-5.37,-5.37)" stroke="rgb(121,209,81)" stroke-width="1.4" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="8.94"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.25" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.26" href="#gridSVG.pch21" x="465.73" y="491.41" width="36.97" height="36.97" transform=" translate(-18.49,-18.49)" stroke="rgb(147,215,65)" stroke-width="0.41" opacity="0.3" fill="rgb(147,215,65)" stroke-opacity="1" fill-opacity="1" font-size="30.81"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.27" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.28" href="#gridSVG.pch21" x="87.28" y="104.37" width="5.54" height="5.54" transform=" translate(-2.77,-2.77)" stroke="rgb(65,66,135)" stroke-width="2.71" opacity="0.3" fill="rgb(65,66,135)" stroke-opacity="1" fill-opacity="1" font-size="4.62"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.29" href="#gridSVG.pch21" x="182.98" y="358.36" width="19.2" height="19.2" transform=" translate(-9.6,-9.6)" stroke="rgb(63,72,137)" stroke-width="0.78" opacity="0.3" fill="rgb(63,72,137)" stroke-opacity="1" fill-opacity="1" font-size="16"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.30" href="#gridSVG.pch21" x="182.98" y="189.03" width="19.2" height="19.2" transform=" translate(-9.6,-9.6)" stroke="rgb(160,218,57)" stroke-width="0.78" opacity="0.3" fill="rgb(160,218,57)" stroke-opacity="1" fill-opacity="1" font-size="16"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.31" href="#gridSVG.pch21" x="93.8" y="104.37" width="7.33" height="7.33" transform=" translate(-3.67,-3.67)" stroke="rgb(33,144,141)" stroke-width="2.05" opacity="0.3" fill="rgb(33,144,141)" stroke-opacity="1" fill-opacity="1" font-size="6.11"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.32" href="#gridSVG.pch21" x="313.48" y="297.89" width="28.8" height="28.8" transform=" translate(-14.4,-14.4)" stroke="rgb(253,231,37)" stroke-width="0.52" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="24"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.33" href="#gridSVG.pch21" x="387.43" y="394.65" width="33.02" height="33.02" transform=" translate(-16.51,-16.51)" stroke="rgb(187,222,39)" stroke-width="0.45" opacity="0.3" fill="rgb(187,222,39)" stroke-opacity="1" fill-opacity="1" font-size="27.52"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.34" href="#gridSVG.pch21" x="465.73" y="612.35" width="36.97" height="36.97" transform=" translate(-18.49,-18.49)" stroke="rgb(34,167,133)" stroke-width="0.41" opacity="0.3" fill="rgb(34,167,133)" stroke-opacity="1" fill-opacity="1" font-size="30.81"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.35" href="#gridSVG.pch21" x="130.78" y="128.56" width="13.58" height="13.58" transform=" translate(-6.79,-6.79)" stroke="rgb(253,231,37)" stroke-width="1.1" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="11.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.36" href="#gridSVG.pch21" x="152.53" y="189.03" width="16.16" height="16.16" transform=" translate(-8.08,-8.08)" stroke="rgb(31,158,137)" stroke-width="0.93" opacity="0.3" fill="rgb(31,158,137)" stroke-opacity="1" fill-opacity="1" font-size="13.47"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.37" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.38" href="#gridSVG.pch21" x="132.95" y="140.66" width="13.86" height="13.86" transform=" translate(-6.93,-6.93)" stroke="rgb(121,209,81)" stroke-width="1.08" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="11.55"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.39" href="#gridSVG.pch21" x="124.25" y="128.56" width="12.7" height="12.7" transform=" translate(-6.35,-6.35)" stroke="rgb(160,218,57)" stroke-width="1.18" opacity="0.3" fill="rgb(160,218,57)" stroke-opacity="1" fill-opacity="1" font-size="10.58"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.40" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.41" href="#gridSVG.pch21" x="609.28" y="660.73" width="43.29" height="43.29" transform=" translate(-21.64,-21.64)" stroke="rgb(134,213,73)" stroke-width="0.35" opacity="0.3" fill="rgb(134,213,73)" stroke-opacity="1" fill-opacity="1" font-size="36.07"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.42" href="#gridSVG.pch21" x="104.68" y="104.37" width="9.6" height="9.6" transform=" translate(-4.8,-4.8)" stroke="rgb(253,231,37)" stroke-width="1.56" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.43" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.44" href="#gridSVG.pch21" x="156.88" y="152.75" width="16.63" height="16.63" transform=" translate(-8.31,-8.31)" stroke="rgb(253,231,37)" stroke-width="0.9" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="13.86"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.45" href="#gridSVG.pch21" x="80.75" y="92.28" width="2.77" height="2.77" transform=" translate(-1.39,-1.39)" stroke="rgb(68,1,84)" stroke-width="5.41" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="2.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.46" href="#gridSVG.pch21" x="98.15" y="104.37" width="8.31" height="8.31" transform=" translate(-4.16,-4.16)" stroke="rgb(66,190,113)" stroke-width="1.8" opacity="0.3" fill="rgb(66,190,113)" stroke-opacity="1" fill-opacity="1" font-size="6.93"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.47" href="#gridSVG.pch21" x="126.43" y="152.75" width="13" height="13" transform=" translate(-6.5,-6.5)" stroke="rgb(31,153,138)" stroke-width="1.15" opacity="0.3" fill="rgb(31,153,138)" stroke-opacity="1" fill-opacity="1" font-size="10.83"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.48" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.49" href="#gridSVG.pch21" x="324.35" y="430.93" width="29.46" height="29.46" transform=" translate(-14.73,-14.73)" stroke="rgb(31,162,135)" stroke-width="0.51" opacity="0.3" fill="rgb(31,162,135)" stroke-opacity="1" fill-opacity="1" font-size="24.55"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.50" href="#gridSVG.pch21" x="124.25" y="140.66" width="12.7" height="12.7" transform=" translate(-6.35,-6.35)" stroke="rgb(44,177,126)" stroke-width="1.18" opacity="0.3" fill="rgb(44,177,126)" stroke-opacity="1" fill-opacity="1" font-size="10.58"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.51" href="#gridSVG.pch21" x="124.25" y="152.75" width="12.7" height="12.7" transform=" translate(-6.35,-6.35)" stroke="rgb(33,144,141)" stroke-width="1.18" opacity="0.3" fill="rgb(33,144,141)" stroke-opacity="1" fill-opacity="1" font-size="10.58"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.52" href="#gridSVG.pch21" x="104.68" y="104.37" width="9.6" height="9.6" transform=" translate(-4.8,-4.8)" stroke="rgb(253,231,37)" stroke-width="1.56" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.53" href="#gridSVG.pch21" x="161.23" y="189.03" width="17.08" height="17.08" transform=" translate(-8.54,-8.54)" stroke="rgb(44,177,126)" stroke-width="0.88" opacity="0.3" fill="rgb(44,177,126)" stroke-opacity="1" fill-opacity="1" font-size="14.24"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.54" href="#gridSVG.pch21" x="163.4" y="189.03" width="17.31" height="17.31" transform=" translate(-8.65,-8.65)" stroke="rgb(50,182,122)" stroke-width="0.87" opacity="0.3" fill="rgb(50,182,122)" stroke-opacity="1" fill-opacity="1" font-size="14.42"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.55" href="#gridSVG.pch21" x="117.73" y="116.47" width="11.76" height="11.76" transform=" translate(-5.88,-5.88)" stroke="rgb(253,231,37)" stroke-width="1.28" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="9.8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.56" href="#gridSVG.pch21" x="98.15" y="140.66" width="8.31" height="8.31" transform=" translate(-4.16,-4.16)" stroke="rgb(69,54,129)" stroke-width="1.8" opacity="0.3" fill="rgb(69,54,129)" stroke-opacity="1" fill-opacity="1" font-size="6.93"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.57" href="#gridSVG.pch21" x="235.18" y="322.08" width="23.51" height="23.51" transform=" translate(-11.76,-11.76)" stroke="rgb(31,148,140)" stroke-width="0.64" opacity="0.3" fill="rgb(31,148,140)" stroke-opacity="1" fill-opacity="1" font-size="19.59"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.58" href="#gridSVG.pch21" x="139.48" y="164.84" width="14.66" height="14.66" transform=" translate(-7.33,-7.33)" stroke="rgb(34,167,133)" stroke-width="1.02" opacity="0.3" fill="rgb(34,167,133)" stroke-opacity="1" fill-opacity="1" font-size="12.22"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.59" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.60" href="#gridSVG.pch21" x="293.9" y="309.98" width="27.57" height="27.57" transform=" translate(-13.79,-13.79)" stroke="rgb(147,215,65)" stroke-width="0.54" opacity="0.3" fill="rgb(147,215,65)" stroke-opacity="1" fill-opacity="1" font-size="22.98"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.61" href="#gridSVG.pch21" x="169.93" y="164.84" width="17.96" height="17.96" transform=" translate(-8.98,-8.98)" stroke="rgb(253,231,37)" stroke-width="0.84" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="14.97"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.62" href="#gridSVG.pch21" x="117.73" y="128.56" width="11.76" height="11.76" transform=" translate(-5.88,-5.88)" stroke="rgb(66,190,113)" stroke-width="1.28" opacity="0.3" fill="rgb(66,190,113)" stroke-opacity="1" fill-opacity="1" font-size="9.8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.63" href="#gridSVG.pch21" x="98.15" y="128.56" width="8.31" height="8.31" transform=" translate(-4.16,-4.16)" stroke="rgb(58,83,139)" stroke-width="1.8" opacity="0.3" fill="rgb(58,83,139)" stroke-opacity="1" fill-opacity="1" font-size="6.93"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.64" href="#gridSVG.pch21" x="196.03" y="225.32" width="20.36" height="20.36" transform=" translate(-10.18,-10.18)" stroke="rgb(66,190,113)" stroke-width="0.74" opacity="0.3" fill="rgb(66,190,113)" stroke-opacity="1" fill-opacity="1" font-size="16.97"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.65" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.66" href="#gridSVG.pch21" x="146" y="164.84" width="15.43" height="15.43" transform=" translate(-7.71,-7.71)" stroke="rgb(58,186,118)" stroke-width="0.97" opacity="0.3" fill="rgb(58,186,118)" stroke-opacity="1" fill-opacity="1" font-size="12.86"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.67" href="#gridSVG.pch21" x="463.56" y="648.64" width="36.87" height="36.87" transform=" translate(-18.43,-18.43)" stroke="rgb(31,158,137)" stroke-width="0.41" opacity="0.3" fill="rgb(31,158,137)" stroke-opacity="1" fill-opacity="1" font-size="30.72"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.68" href="#gridSVG.pch21" x="82.93" y="92.28" width="3.92" height="3.92" transform=" translate(-1.96,-1.96)" stroke="rgb(65,66,135)" stroke-width="3.83" opacity="0.3" fill="rgb(65,66,135)" stroke-opacity="1" fill-opacity="1" font-size="3.27"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.69" href="#gridSVG.pch21" x="215.6" y="491.41" width="22" height="22" transform=" translate(-11,-11)" stroke="rgb(67,61,132)" stroke-width="0.68" opacity="0.3" fill="rgb(67,61,132)" stroke-opacity="1" fill-opacity="1" font-size="18.33"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.70" href="#gridSVG.pch21" x="93.8" y="140.66" width="7.33" height="7.33" transform=" translate(-3.67,-3.67)" stroke="rgb(72,28,110)" stroke-width="2.05" opacity="0.3" fill="rgb(72,28,110)" stroke-opacity="1" fill-opacity="1" font-size="6.11"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.71" href="#gridSVG.pch21" x="372.2" y="382.55" width="32.2" height="32.2" transform=" translate(-16.1,-16.1)" stroke="rgb(174,220,48)" stroke-width="0.47" opacity="0.3" fill="rgb(174,220,48)" stroke-opacity="1" fill-opacity="1" font-size="26.83"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.72" href="#gridSVG.pch21" x="465.73" y="467.22" width="36.97" height="36.97" transform=" translate(-18.49,-18.49)" stroke="rgb(201,224,32)" stroke-width="0.41" opacity="0.3" fill="rgb(201,224,32)" stroke-opacity="1" fill-opacity="1" font-size="30.81"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.73" href="#gridSVG.pch21" x="130.78" y="152.75" width="13.58" height="13.58" transform=" translate(-6.79,-6.79)" stroke="rgb(34,167,133)" stroke-width="1.1" opacity="0.3" fill="rgb(34,167,133)" stroke-opacity="1" fill-opacity="1" font-size="11.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.74" href="#gridSVG.pch21" x="124.25" y="140.66" width="12.7" height="12.7" transform=" translate(-6.35,-6.35)" stroke="rgb(44,177,126)" stroke-width="1.18" opacity="0.3" fill="rgb(44,177,126)" stroke-opacity="1" fill-opacity="1" font-size="10.58"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.75" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.76" href="#gridSVG.pch21" x="87.28" y="104.37" width="5.54" height="5.54" transform=" translate(-2.77,-2.77)" stroke="rgb(65,66,135)" stroke-width="2.71" opacity="0.3" fill="rgb(65,66,135)" stroke-opacity="1" fill-opacity="1" font-size="4.62"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.77" href="#gridSVG.pch21" x="339.58" y="358.36" width="30.36" height="30.36" transform=" translate(-15.18,-15.18)" stroke="rgb(147,215,65)" stroke-width="0.49" opacity="0.3" fill="rgb(147,215,65)" stroke-opacity="1" fill-opacity="1" font-size="25.3"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.78" href="#gridSVG.pch21" x="718.03" y="672.83" width="47.51" height="47.51" transform=" translate(-23.76,-23.76)" stroke="rgb(253,231,37)" stroke-width="0.32" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="39.6"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.79" href="#gridSVG.pch21" x="132.95" y="152.75" width="13.86" height="13.86" transform=" translate(-6.93,-6.93)" stroke="rgb(44,177,126)" stroke-width="1.08" opacity="0.3" fill="rgb(44,177,126)" stroke-opacity="1" fill-opacity="1" font-size="11.55"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.80" href="#gridSVG.pch21" x="82.93" y="104.37" width="3.92" height="3.92" transform=" translate(-1.96,-1.96)" stroke="rgb(68,1,84)" stroke-width="3.83" opacity="0.3" fill="rgb(68,1,84)" stroke-opacity="1" fill-opacity="1" font-size="3.27"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.81" href="#gridSVG.pch21" x="230.83" y="261.6" width="23.18" height="23.18" transform=" translate(-11.59,-11.59)" stroke="rgb(87,198,102)" stroke-width="0.65" opacity="0.3" fill="rgb(87,198,102)" stroke-opacity="1" fill-opacity="1" font-size="19.32"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.82" href="#gridSVG.pch21" x="111.2" y="116.47" width="10.73" height="10.73" transform=" translate(-5.37,-5.37)" stroke="rgb(121,209,81)" stroke-width="1.4" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="8.94"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.83" href="#gridSVG.pch21" x="130.78" y="140.66" width="13.58" height="13.58" transform=" translate(-6.79,-6.79)" stroke="rgb(97,203,95)" stroke-width="1.1" opacity="0.3" fill="rgb(97,203,95)" stroke-opacity="1" fill-opacity="1" font-size="11.31"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.84" href="#gridSVG.pch21" x="169.93" y="297.89" width="17.96" height="17.96" transform=" translate(-8.98,-8.98)" stroke="rgb(58,83,139)" stroke-width="0.84" opacity="0.3" fill="rgb(58,83,139)" stroke-opacity="1" fill-opacity="1" font-size="14.97"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.85" href="#gridSVG.pch21" x="104.68" y="104.37" width="9.6" height="9.6" transform=" translate(-4.8,-4.8)" stroke="rgb(253,231,37)" stroke-width="1.56" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="8"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.86" href="#gridSVG.pch21" x="430.93" y="430.93" width="35.27" height="35.27" transform=" translate(-17.64,-17.64)" stroke="rgb(201,224,32)" stroke-width="0.43" opacity="0.3" fill="rgb(201,224,32)" stroke-opacity="1" fill-opacity="1" font-size="29.39"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.87" href="#gridSVG.pch21" x="317.83" y="418.84" width="29.06" height="29.06" transform=" translate(-14.53,-14.53)" stroke="rgb(31,162,135)" stroke-width="0.52" opacity="0.3" fill="rgb(31,162,135)" stroke-opacity="1" fill-opacity="1" font-size="24.22"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.88" href="#gridSVG.pch21" x="596.23" y="672.83" width="42.75" height="42.75" transform=" translate(-21.38,-21.38)" stroke="rgb(109,206,89)" stroke-width="0.35" opacity="0.3" fill="rgb(109,206,89)" stroke-opacity="1" fill-opacity="1" font-size="35.63"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.89" href="#gridSVG.pch21" x="85.1" y="92.28" width="4.8" height="4.8" transform=" translate(-2.4,-2.4)" stroke="rgb(42,119,142)" stroke-width="3.13" opacity="0.3" fill="rgb(42,119,142)" stroke-opacity="1" fill-opacity="1" font-size="4"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.90" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.91" href="#gridSVG.pch21" x="378.73" y="479.31" width="32.55" height="32.55" transform=" translate(-16.28,-16.28)" stroke="rgb(44,177,126)" stroke-width="0.46" opacity="0.3" fill="rgb(44,177,126)" stroke-opacity="1" fill-opacity="1" font-size="27.13"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.92" href="#gridSVG.pch21" x="89.45" y="116.47" width="6.2" height="6.2" transform=" translate(-3.1,-3.1)" stroke="rgb(70,47,126)" stroke-width="2.42" opacity="0.3" fill="rgb(70,47,126)" stroke-opacity="1" fill-opacity="1" font-size="5.16"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.93" href="#gridSVG.pch21" x="91.63" y="92.28" width="6.79" height="6.79" transform=" translate(-3.39,-3.39)" stroke="rgb(253,231,37)" stroke-width="2.21" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="5.66"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.94" href="#gridSVG.pch21" x="480.96" y="551.88" width="37.69" height="37.69" transform=" translate(-18.85,-18.85)" stroke="rgb(87,198,102)" stroke-width="0.4" opacity="0.3" fill="rgb(87,198,102)" stroke-opacity="1" fill-opacity="1" font-size="31.41"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.95" href="#gridSVG.pch21" x="98.15" y="104.37" width="8.31" height="8.31" transform=" translate(-4.16,-4.16)" stroke="rgb(66,190,113)" stroke-width="1.8" opacity="0.3" fill="rgb(66,190,113)" stroke-opacity="1" fill-opacity="1" font-size="6.93"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.96" href="#gridSVG.pch21" x="156.88" y="152.75" width="16.63" height="16.63" transform=" translate(-8.31,-8.31)" stroke="rgb(253,231,37)" stroke-width="0.9" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="13.86"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.97" href="#gridSVG.pch21" x="718.03" y="672.83" width="47.51" height="47.51" transform=" translate(-23.76,-23.76)" stroke="rgb(253,231,37)" stroke-width="0.32" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="39.6"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.98" href="#gridSVG.pch21" x="594.06" y="672.83" width="42.66" height="42.66" transform=" translate(-21.33,-21.33)" stroke="rgb(97,203,95)" stroke-width="0.35" opacity="0.3" fill="rgb(97,203,95)" stroke-opacity="1" fill-opacity="1" font-size="35.55"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.99" href="#gridSVG.pch21" x="704.98" y="660.73" width="47.03" height="47.03" transform=" translate(-23.51,-23.51)" stroke="rgb(253,231,37)" stroke-width="0.32" opacity="0.3" fill="rgb(253,231,37)" stroke-opacity="1" fill-opacity="1" font-size="39.19"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.100" href="#gridSVG.pch21" x="126.43" y="164.84" width="13" height="13" transform=" translate(-6.5,-6.5)" stroke="rgb(40,124,142)" stroke-width="1.15" opacity="0.3" fill="rgb(40,124,142)" stroke-opacity="1" fill-opacity="1" font-size="10.83"/>
+                      <use id="inz-SCATTERPOINTS.1.1.1.101" href="#gridSVG.pch21" x="111.2" y="116.47" width="10.73" height="10.73" transform=" translate(-5.37,-5.37)" stroke="rgb(121,209,81)" stroke-width="1.4" opacity="0.3" fill="rgb(121,209,81)" stroke-opacity="1" fill-opacity="1" font-size="8.94"/>
+                    </g>
+                  </g>
+                  <g id="inz-rect-tp.1.1.1">
+                    <rect id="inz-rect-tp.1.1.1.1" x="48.89" y="63.25" width="701.01" height="638.61" transform="" fill="none" fill-opacity="0"/>
+                  </g>
+                  <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::GRID.VP.409.1">
+                    <g id="inz-xaxis-bottom.1.1.1" font-size="9.6">
+                      <g id="major.2">
+                        <polyline id="major.2.1" points="78.58,63.25 731.08,63.25" fill="none"/>
+                      </g>
+                      <g id="ticks.2">
+                        <polyline id="ticks.2.1" points="78.58,63.25 78.58,54.61" fill="none"/>
+                        <polyline id="ticks.2.2" points="187.33,63.25 187.33,54.61" fill="none"/>
+                        <polyline id="ticks.2.3" points="296.08,63.25 296.08,54.61" fill="none"/>
+                        <polyline id="ticks.2.4" points="404.83,63.25 404.83,54.61" fill="none"/>
+                        <polyline id="ticks.2.5" points="513.58,63.25 513.58,54.61" fill="none"/>
+                        <polyline id="ticks.2.6" points="622.33,63.25 622.33,54.61" fill="none"/>
+                        <polyline id="ticks.2.7" points="731.08,63.25 731.08,54.61" fill="none"/>
+                      </g>
+                      <g id="labels.2">
+                        <g id="labels.2.1" transform="translate(78.58, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.1.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.1.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.1.tspan.1" dy="5.03" x="0">  0</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.2" transform="translate(187.33, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.2.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.2.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.2.tspan.1" dy="5.03" x="0"> 50</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.3" transform="translate(296.08, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.3.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.3.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.3.tspan.1" dy="5.03" x="0">100</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.4" transform="translate(404.83, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.4.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.4.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.4.tspan.1" dy="5.03" x="0">150</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.5" transform="translate(513.58, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.5.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.5.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.5.tspan.1" dy="5.03" x="0">200</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.6" transform="translate(622.33, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.6.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.6.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.6.tspan.1" dy="5.03" x="0">250</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.2.7" transform="translate(731.08, 37.33)" stroke-width="0.1">
+                          <g id="labels.2.7.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.2.7.text" text-anchor="middle" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.2.7.tspan.1" dy="5.03" x="0">300</tspan>
+                            </text>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                    <g id="inz-yaxis-left.1.1.1" font-size="9.6">
+                      <g id="major.3">
+                        <polyline id="major.3.1" points="48.89,80.18 48.89,684.92" fill="none"/>
+                      </g>
+                      <g id="ticks.3">
+                        <polyline id="ticks.3.1" points="48.89,80.18 40.25,80.18" fill="none"/>
+                        <polyline id="ticks.3.2" points="48.89,201.13 40.25,201.13" fill="none"/>
+                        <polyline id="ticks.3.3" points="48.89,322.08 40.25,322.08" fill="none"/>
+                        <polyline id="ticks.3.4" points="48.89,443.03 40.25,443.03" fill="none"/>
+                        <polyline id="ticks.3.5" points="48.89,563.97 40.25,563.97" fill="none"/>
+                        <polyline id="ticks.3.6" points="48.89,684.92 40.25,684.92" fill="none"/>
+                      </g>
+                      <g id="labels.3">
+                        <g id="labels.3.1" transform="translate(31.61, 80.18)" stroke-width="0.1">
+                          <g id="labels.3.1.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.1.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.1.tspan.1" dy="5.03" x="0"> 0</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.3.2" transform="translate(31.61, 201.13)" stroke-width="0.1">
+                          <g id="labels.3.2.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.2.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.2.tspan.1" dy="5.03" x="0">10</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.3.3" transform="translate(31.61, 322.08)" stroke-width="0.1">
+                          <g id="labels.3.3.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.3.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.3.tspan.1" dy="5.03" x="0">20</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.3.4" transform="translate(31.61, 443.03)" stroke-width="0.1">
+                          <g id="labels.3.4.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.4.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.4.tspan.1" dy="5.03" x="0">30</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.3.5" transform="translate(31.61, 563.97)" stroke-width="0.1">
+                          <g id="labels.3.5.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.5.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.5.tspan.1" dy="5.03" x="0">40</tspan>
+                            </text>
+                          </g>
+                        </g>
+                        <g id="labels.3.6" transform="translate(31.61, 684.92)" stroke-width="0.1">
+                          <g id="labels.3.6.scale" transform="scale(1, -1)">
+                            <text x="0" y="0" id="labels.3.6.text" text-anchor="end" fill="rgb(0,0,0)" fill-opacity="1">
+                              <tspan id="labels.3.6.tspan.1" dy="5.03" x="0">50</tspan>
+                            </text>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                    <g id="inz-yaxis-right.1.1.1" font-size="9.6">
+                      <g id="major.4">
+                        <polyline id="major.4.1" points="749.9,80.18 749.9,684.92" fill="none"/>
+                      </g>
+                      <g id="ticks.4">
+                        <polyline id="ticks.4.1" points="749.9,80.18 758.54,80.18" fill="none"/>
+                        <polyline id="ticks.4.2" points="749.9,201.13 758.54,201.13" fill="none"/>
+                        <polyline id="ticks.4.3" points="749.9,322.08 758.54,322.08" fill="none"/>
+                        <polyline id="ticks.4.4" points="749.9,443.03 758.54,443.03" fill="none"/>
+                        <polyline id="ticks.4.5" points="749.9,563.97 758.54,563.97" fill="none"/>
+                        <polyline id="ticks.4.6" points="749.9,684.92 758.54,684.92" fill="none"/>
+                      </g>
+                    </g>
+                  </g>
+                  <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::GRID.VP.410.1">
+                    <g id="container::VP:TOPlayout::GRID.VP.406::VP:PLOTlayout::GRID.VP.407::GRID.VP.408::GRID.VP.410::GRID.VP.411.1">
+                      <g id="inz-xaxis-top.1.1.1" font-size="9.6">
+                        <g id="major.5">
+                          <polyline id="major.5.1" points="78.58,701.86 731.08,701.86" fill="none"/>
+                        </g>
+                        <g id="ticks.5">
+                          <polyline id="ticks.5.1" points="78.58,701.86 78.58,710.5" fill="none"/>
+                          <polyline id="ticks.5.2" points="187.33,701.86 187.33,710.5" fill="none"/>
+                          <polyline id="ticks.5.3" points="296.08,701.86 296.08,710.5" fill="none"/>
+                          <polyline id="ticks.5.4" points="404.83,701.86 404.83,710.5" fill="none"/>
+                          <polyline id="ticks.5.5" points="513.58,701.86 513.58,710.5" fill="none"/>
+                          <polyline id="ticks.5.6" points="622.33,701.86 622.33,710.5" fill="none"/>
+                          <polyline id="ticks.5.7" points="731.08,701.86 731.08,710.5" fill="none"/>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg> 
+      </div>
+      <div class = "tbl-div table-responsive">
+<table id="table" class="table table-condensed table-hover" cellspacing="0">
+<caption>Data</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Username </th>
+   <th style="text-align:center;"> Total </th>
+   <th style="text-align:center;"> Played </th>
+   <th style="text-align:center;"> Avg </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> 1 </td>
+   <td style="text-align:center;"> eLessardcom </td>
+   <td style="text-align:center;"> 66 </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 5.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:center;"> NothernMaine207 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 3 </td>
+   <td style="text-align:center;"> King_Kolz </td>
+   <td style="text-align:center;"> 264 </td>
+   <td style="text-align:center;"> 44 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 4 </td>
+   <td style="text-align:center;"> bigberry </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 5 </td>
+   <td style="text-align:center;"> DethsAngel </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 6 </td>
+   <td style="text-align:center;"> BlueMoonDarts </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 7 </td>
+   <td style="text-align:center;"> GG13652 </td>
+   <td style="text-align:center;"> 115 </td>
+   <td style="text-align:center;"> 22 </td>
+   <td style="text-align:center;"> 5.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 8 </td>
+   <td style="text-align:center;"> bedoza88 </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 9 </td>
+   <td style="text-align:center;"> xxarcadianxx </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 5.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 10 </td>
+   <td style="text-align:center;"> imdaterminator </td>
+   <td style="text-align:center;"> 10 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 3.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 11 </td>
+   <td style="text-align:center;"> delayu </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 12 </td>
+   <td style="text-align:center;"> Hitlooser </td>
+   <td style="text-align:center;"> 118 </td>
+   <td style="text-align:center;"> 25 </td>
+   <td style="text-align:center;"> 4.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 13 </td>
+   <td style="text-align:center;"> CMOS_System </td>
+   <td style="text-align:center;"> 184 </td>
+   <td style="text-align:center;"> 38 </td>
+   <td style="text-align:center;"> 4.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 14 </td>
+   <td style="text-align:center;"> Mikerosoft2525 </td>
+   <td style="text-align:center;"> 59 </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 3.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 15 </td>
+   <td style="text-align:center;"> CaptainSparrowHU </td>
+   <td style="text-align:center;"> 70 </td>
+   <td style="text-align:center;"> 14 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 16 </td>
+   <td style="text-align:center;"> EngelskSauce </td>
+   <td style="text-align:center;"> 18 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 17 </td>
+   <td style="text-align:center;"> dapekema </td>
+   <td style="text-align:center;"> 52 </td>
+   <td style="text-align:center;"> 16 </td>
+   <td style="text-align:center;"> 3.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 18 </td>
+   <td style="text-align:center;"> riverend180 </td>
+   <td style="text-align:center;"> 32 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 3.6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 19 </td>
+   <td style="text-align:center;"> The_Spot </td>
+   <td style="text-align:center;"> 23 </td>
+   <td style="text-align:center;"> 10 </td>
+   <td style="text-align:center;"> 2.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 20 </td>
+   <td style="text-align:center;"> MrCauich </td>
+   <td style="text-align:center;"> 33 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 3.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 21 </td>
+   <td style="text-align:center;"> AnarchistPrime </td>
+   <td style="text-align:center;"> 138 </td>
+   <td style="text-align:center;"> 23 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 22 </td>
+   <td style="text-align:center;"> Mr_Spokk </td>
+   <td style="text-align:center;"> 288 </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 5.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 23 </td>
+   <td style="text-align:center;"> snowbobadger </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 24 </td>
+   <td style="text-align:center;"> trebledog </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 25 </td>
+   <td style="text-align:center;"> MeddlinQ </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 26 </td>
+   <td style="text-align:center;"> seanrsmithmba </td>
+   <td style="text-align:center;"> 178 </td>
+   <td style="text-align:center;"> 34 </td>
+   <td style="text-align:center;"> 5.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 27 </td>
+   <td style="text-align:center;"> portler </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 28 </td>
+   <td style="text-align:center;"> Tarzeus </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 2.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 29 </td>
+   <td style="text-align:center;"> penguins871409 </td>
+   <td style="text-align:center;"> 48 </td>
+   <td style="text-align:center;"> 23 </td>
+   <td style="text-align:center;"> 2.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 30 </td>
+   <td style="text-align:center;"> Sabotobu96 </td>
+   <td style="text-align:center;"> 48 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 5.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 31 </td>
+   <td style="text-align:center;"> Thadrone </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 3.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 32 </td>
+   <td style="text-align:center;"> deGrubs </td>
+   <td style="text-align:center;"> 108 </td>
+   <td style="text-align:center;"> 18 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 33 </td>
+   <td style="text-align:center;"> Mikerue7 </td>
+   <td style="text-align:center;"> 142 </td>
+   <td style="text-align:center;"> 26 </td>
+   <td style="text-align:center;"> 5.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 34 </td>
+   <td style="text-align:center;"> Jgdarts180 </td>
+   <td style="text-align:center;"> 178 </td>
+   <td style="text-align:center;"> 44 </td>
+   <td style="text-align:center;"> 4.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 35 </td>
+   <td style="text-align:center;"> mikelichniak </td>
+   <td style="text-align:center;"> 24 </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 36 </td>
+   <td style="text-align:center;"> Gioanes </td>
+   <td style="text-align:center;"> 34 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 3.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 37 </td>
+   <td style="text-align:center;"> poopoocahcahpeepee </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 38 </td>
+   <td style="text-align:center;"> akmf9884 </td>
+   <td style="text-align:center;"> 25 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 39 </td>
+   <td style="text-align:center;"> BakerBert </td>
+   <td style="text-align:center;"> 21 </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 5.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 40 </td>
+   <td style="text-align:center;"> Tuhkard </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 41 </td>
+   <td style="text-align:center;"> Banzyni </td>
+   <td style="text-align:center;"> 244 </td>
+   <td style="text-align:center;"> 48 </td>
+   <td style="text-align:center;"> 5.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 42 </td>
+   <td style="text-align:center;"> jvg1993 </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 43 </td>
+   <td style="text-align:center;"> JoeBro180 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 44 </td>
+   <td style="text-align:center;"> Hacksaw171 </td>
+   <td style="text-align:center;"> 36 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 45 </td>
+   <td style="text-align:center;"> Hampejo </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 46 </td>
+   <td style="text-align:center;"> Helltee </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 4.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 47 </td>
+   <td style="text-align:center;"> GusTheHutt </td>
+   <td style="text-align:center;"> 22 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 3.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 48 </td>
+   <td style="text-align:center;"> Fallen36 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 49 </td>
+   <td style="text-align:center;"> Hyperdavve </td>
+   <td style="text-align:center;"> 113 </td>
+   <td style="text-align:center;"> 29 </td>
+   <td style="text-align:center;"> 3.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 50 </td>
+   <td style="text-align:center;"> CrushNJ </td>
+   <td style="text-align:center;"> 21 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 4.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 51 </td>
+   <td style="text-align:center;"> r0nnybums </td>
+   <td style="text-align:center;"> 21 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 3.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 52 </td>
+   <td style="text-align:center;"> mitchellweih </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 53 </td>
+   <td style="text-align:center;"> cowboyecosse </td>
+   <td style="text-align:center;"> 38 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 4.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 54 </td>
+   <td style="text-align:center;"> spartancody08 </td>
+   <td style="text-align:center;"> 39 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 4.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 55 </td>
+   <td style="text-align:center;"> AR_DC </td>
+   <td style="text-align:center;"> 18 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 56 </td>
+   <td style="text-align:center;"> Arkslippy </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 1.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 57 </td>
+   <td style="text-align:center;"> Lovemesomediscgolf </td>
+   <td style="text-align:center;"> 72 </td>
+   <td style="text-align:center;"> 20 </td>
+   <td style="text-align:center;"> 3.6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 58 </td>
+   <td style="text-align:center;"> Solar85 </td>
+   <td style="text-align:center;"> 28 </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 4.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 59 </td>
+   <td style="text-align:center;"> tohtreb </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 60 </td>
+   <td style="text-align:center;"> DavidA122 </td>
+   <td style="text-align:center;"> 99 </td>
+   <td style="text-align:center;"> 19 </td>
+   <td style="text-align:center;"> 5.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 61 </td>
+   <td style="text-align:center;"> goesters </td>
+   <td style="text-align:center;"> 42 </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 62 </td>
+   <td style="text-align:center;"> SirShale </td>
+   <td style="text-align:center;"> 18 </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 4.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 63 </td>
+   <td style="text-align:center;"> climber_jared </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 2.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 64 </td>
+   <td style="text-align:center;"> Downunder452 </td>
+   <td style="text-align:center;"> 54 </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 4.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 65 </td>
+   <td style="text-align:center;"> quinnsi </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 66 </td>
+   <td style="text-align:center;"> LoneWolf5498 </td>
+   <td style="text-align:center;"> 31 </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 4.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 67 </td>
+   <td style="text-align:center;"> PsychologicalChain </td>
+   <td style="text-align:center;"> 177 </td>
+   <td style="text-align:center;"> 47 </td>
+   <td style="text-align:center;"> 3.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 68 </td>
+   <td style="text-align:center;"> sb757 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 2.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 69 </td>
+   <td style="text-align:center;"> Cyrag </td>
+   <td style="text-align:center;"> 63 </td>
+   <td style="text-align:center;"> 34 </td>
+   <td style="text-align:center;"> 1.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 70 </td>
+   <td style="text-align:center;"> GrumpySilverBear </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 1.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 71 </td>
+   <td style="text-align:center;"> Fozzys </td>
+   <td style="text-align:center;"> 135 </td>
+   <td style="text-align:center;"> 25 </td>
+   <td style="text-align:center;"> 5.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 72 </td>
+   <td style="text-align:center;"> PunchinPriests </td>
+   <td style="text-align:center;"> 178 </td>
+   <td style="text-align:center;"> 32 </td>
+   <td style="text-align:center;"> 5.6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 73 </td>
+   <td style="text-align:center;"> Starbuck_Durden </td>
+   <td style="text-align:center;"> 24 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 4.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 74 </td>
+   <td style="text-align:center;"> OfficialAnorak </td>
+   <td style="text-align:center;"> 21 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 4.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 75 </td>
+   <td style="text-align:center;"> PM_ME_UR_PINEAPPLE </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 76 </td>
+   <td style="text-align:center;"> Tamtaria </td>
+   <td style="text-align:center;"> 4 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 2.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 77 </td>
+   <td style="text-align:center;"> chisox1236 </td>
+   <td style="text-align:center;"> 120 </td>
+   <td style="text-align:center;"> 23 </td>
+   <td style="text-align:center;"> 5.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 78 </td>
+   <td style="text-align:center;"> BeauSmit </td>
+   <td style="text-align:center;"> 294 </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 79 </td>
+   <td style="text-align:center;"> JimGammy </td>
+   <td style="text-align:center;"> 25 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 4.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 80 </td>
+   <td style="text-align:center;"> Marethyuuu </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 1.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 81 </td>
+   <td style="text-align:center;"> zeeplereddit </td>
+   <td style="text-align:center;"> 70 </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 4.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 82 </td>
+   <td style="text-align:center;"> tossintongues </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 83 </td>
+   <td style="text-align:center;"> X4ulZ4n </td>
+   <td style="text-align:center;"> 24 </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 4.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 84 </td>
+   <td style="text-align:center;"> MightyJordan </td>
+   <td style="text-align:center;"> 42 </td>
+   <td style="text-align:center;"> 18 </td>
+   <td style="text-align:center;"> 2.3 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 85 </td>
+   <td style="text-align:center;"> bb199806011 </td>
+   <td style="text-align:center;"> 12 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 86 </td>
+   <td style="text-align:center;"> always-a-bigger-fish </td>
+   <td style="text-align:center;"> 162 </td>
+   <td style="text-align:center;"> 29 </td>
+   <td style="text-align:center;"> 5.6 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 87 </td>
+   <td style="text-align:center;"> AlmightyAlpaca2 </td>
+   <td style="text-align:center;"> 110 </td>
+   <td style="text-align:center;"> 28 </td>
+   <td style="text-align:center;"> 3.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 88 </td>
+   <td style="text-align:center;"> Ohnoitsmagic </td>
+   <td style="text-align:center;"> 238 </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 4.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 89 </td>
+   <td style="text-align:center;"> mgg1967 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 3.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 90 </td>
+   <td style="text-align:center;"> smithy16644 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 91 </td>
+   <td style="text-align:center;"> GFly02 </td>
+   <td style="text-align:center;"> 138 </td>
+   <td style="text-align:center;"> 33 </td>
+   <td style="text-align:center;"> 4.2 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 92 </td>
+   <td style="text-align:center;"> FaceToAss </td>
+   <td style="text-align:center;"> 5 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 1.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 93 </td>
+   <td style="text-align:center;"> ewanalbright </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 1 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 94 </td>
+   <td style="text-align:center;"> Riceylad543 </td>
+   <td style="text-align:center;"> 185 </td>
+   <td style="text-align:center;"> 39 </td>
+   <td style="text-align:center;"> 4.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 95 </td>
+   <td style="text-align:center;"> Massaman95 </td>
+   <td style="text-align:center;"> 9 </td>
+   <td style="text-align:center;"> 2 </td>
+   <td style="text-align:center;"> 4.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 96 </td>
+   <td style="text-align:center;"> aparkin11 </td>
+   <td style="text-align:center;"> 36 </td>
+   <td style="text-align:center;"> 6 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 97 </td>
+   <td style="text-align:center;"> cadillacbk </td>
+   <td style="text-align:center;"> 294 </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 98 </td>
+   <td style="text-align:center;"> FrankTheGiantRabbit </td>
+   <td style="text-align:center;"> 237 </td>
+   <td style="text-align:center;"> 49 </td>
+   <td style="text-align:center;"> 4.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 99 </td>
+   <td style="text-align:center;"> IsmeJoe </td>
+   <td style="text-align:center;"> 288 </td>
+   <td style="text-align:center;"> 48 </td>
+   <td style="text-align:center;"> 6.0 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 100 </td>
+   <td style="text-align:center;"> Jackzilles </td>
+   <td style="text-align:center;"> 22 </td>
+   <td style="text-align:center;"> 7 </td>
+   <td style="text-align:center;"> 3.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> 101 </td>
+   <td style="text-align:center;"> aljones27 </td>
+   <td style="text-align:center;"> 15 </td>
+   <td style="text-align:center;"> 3 </td>
+   <td style="text-align:center;"> 5.0 </td>
+  </tr>
+</tbody>
+</table>
+      </div>
+    </div>
+
+    <!-- help guide -->
+    <div class = "help-overlay">
+      <div class= "help-info">
+        <h4> <span class = "glyphicon glyphicon-question-sign title"> </span> Help </h4>
+        <span class = "glyphicon glyphicon-stats"> </span><strong> Plot </strong> show/hide plot <br />
+        <span class = "glyphicon glyphicon-list-alt"> </span><strong> Table </strong> show/hide table <br/>
+        <span class = "glyphicon glyphicon-refresh"> </span><strong> Reset </strong> clear all selections/return <br />
+        <strong>Variable to display</strong> select variable/s to display in plot <br/>
+        <br/>
+        <h5>PLOT SELECTION</h5>
+        <strong> Click </strong> for a single selection <br />
+        Hold <strong>Shift + Click</strong> for multiple selections  <br/>
+        (disabled for bar charts) <br/>
+        <strong>Drag + hold</strong> to draw a selection box <br/>
+        <br/>
+        <h5> TABLE SELECTION </h5> (disabled for bar charts) <br/>
+        <strong> Click </strong> on a row for a single selection <br />
+        Click again on the same row to deselect it <br />
+        <br/>
+        <h5>ADDITIONAL FEATURES FOR MAPS</h5>
+        <strong>Slider:</strong> Drag to view a certain time period <br />
+        <strong>Pan and Zoom:</strong> Drag/scroll mouse <br />
+        <hr />
+        Found a bug or got suggestions? Contact us!  <br/>
+        <a href="https://www.stat.auckland.ac.nz/~wild/iNZight/support/contact/">
+          <img alt = "inzight-logo" class="logo" src = "https://www.stat.auckland.ac.nz/~wild/iNZight/img/inzight_transp.png" />
+        </a>
+      </div>
+    </div>
+<script type='text/javascript'> var chart = {"type":["scatter"],"varNames":["Username","Total","Played","Avg"],"data":[{"Username":"eLessardcom","Total":66,"Played":12,"Avg":5.5},{"Username":"NothernMaine207","Total":2,"Played":2,"Avg":1},{"Username":"King_Kolz","Total":264,"Played":44,"Avg":6},{"Username":"bigberry","Total":3,"Played":1,"Avg":3},{"Username":"DethsAngel","Total":1,"Played":1,"Avg":1},{"Username":"BlueMoonDarts","Total":1,"Played":1,"Avg":1},{"Username":"GG13652","Total":115,"Played":22,"Avg":5.2},{"Username":"bedoza88","Total":12,"Played":2,"Avg":6},{"Username":"xxarcadianxx","Total":49,"Played":9,"Avg":5.4},{"Username":"imdaterminator","Total":10,"Played":3,"Avg":3.3},{"Username":"delayu","Total":15,"Played":3,"Avg":5},{"Username":"Hitlooser","Total":118,"Played":25,"Avg":4.7},{"Username":"CMOS_System","Total":184,"Played":38,"Avg":4.8},{"Username":"Mikerosoft2525","Total":59,"Played":15,"Avg":3.9},{"Username":"CaptainSparrowHU","Total":70,"Played":14,"Avg":5},{"Username":"EngelskSauce","Total":18,"Played":3,"Avg":6},{"Username":"dapekema","Total":52,"Played":16,"Avg":3.3},{"Username":"riverend180","Total":32,"Played":9,"Avg":3.6},{"Username":"The_Spot","Total":23,"Played":10,"Avg":2.3},{"Username":"MrCauich","Total":33,"Played":9,"Avg":3.7},{"Username":"AnarchistPrime","Total":138,"Played":23,"Avg":6},{"Username":"Mr_Spokk","Total":288,"Played":49,"Avg":5.9},{"Username":"snowbobadger","Total":1,"Played":1,"Avg":1},{"Username":"trebledog","Total":15,"Played":3,"Avg":5},{"Username":"MeddlinQ","Total":3,"Played":1,"Avg":3},{"Username":"seanrsmithmba","Total":178,"Played":34,"Avg":5.2},{"Username":"portler","Total":3,"Played":1,"Avg":3},{"Username":"Tarzeus","Total":4,"Played":2,"Avg":2},{"Username":"penguins871409","Total":48,"Played":23,"Avg":2.1},{"Username":"Sabotobu96","Total":48,"Played":9,"Avg":5.3},{"Username":"Thadrone","Total":7,"Played":2,"Avg":3.5},{"Username":"deGrubs","Total":108,"Played":18,"Avg":6},{"Username":"Mikerue7","Total":142,"Played":26,"Avg":5.5},{"Username":"Jgdarts180","Total":178,"Played":44,"Avg":4},{"Username":"mikelichniak","Total":24,"Played":4,"Avg":6},{"Username":"Gioanes","Total":34,"Played":9,"Avg":3.8},{"Username":"poopoocahcahpeepee","Total":3,"Played":1,"Avg":3},{"Username":"akmf9884","Total":25,"Played":5,"Avg":5},{"Username":"BakerBert","Total":21,"Played":4,"Avg":5.3},{"Username":"Tuhkard","Total":6,"Played":1,"Avg":6},{"Username":"Banzyni","Total":244,"Played":48,"Avg":5.1},{"Username":"jvg1993","Total":12,"Played":2,"Avg":6},{"Username":"JoeBro180","Total":6,"Played":1,"Avg":6},{"Username":"Hacksaw171","Total":36,"Played":6,"Avg":6},{"Username":"Hampejo","Total":1,"Played":1,"Avg":1},{"Username":"Helltee","Total":9,"Played":2,"Avg":4.5},{"Username":"GusTheHutt","Total":22,"Played":6,"Avg":3.7},{"Username":"Fallen36","Total":3,"Played":1,"Avg":3},{"Username":"Hyperdavve","Total":113,"Played":29,"Avg":3.9},{"Username":"CrushNJ","Total":21,"Played":5,"Avg":4.2},{"Username":"r0nnybums","Total":21,"Played":6,"Avg":3.5},{"Username":"mitchellweih","Total":12,"Played":2,"Avg":6},{"Username":"cowboyecosse","Total":38,"Played":9,"Avg":4.2},{"Username":"spartancody08","Total":39,"Played":9,"Avg":4.3},{"Username":"AR_DC","Total":18,"Played":3,"Avg":6},{"Username":"Arkslippy","Total":9,"Played":5,"Avg":1.8},{"Username":"Lovemesomediscgolf","Total":72,"Played":20,"Avg":3.6},{"Username":"Solar85","Total":28,"Played":7,"Avg":4},{"Username":"tohtreb","Total":6,"Played":1,"Avg":6},{"Username":"DavidA122","Total":99,"Played":19,"Avg":5.2},{"Username":"goesters","Total":42,"Played":7,"Avg":6},{"Username":"SirShale","Total":18,"Played":4,"Avg":4.5},{"Username":"climber_jared","Total":9,"Played":4,"Avg":2.3},{"Username":"Downunder452","Total":54,"Played":12,"Avg":4.5},{"Username":"quinnsi","Total":6,"Played":1,"Avg":6},{"Username":"LoneWolf5498","Total":31,"Played":7,"Avg":4.4},{"Username":"PsychologicalChain","Total":177,"Played":47,"Avg":3.8},{"Username":"sb757","Total":2,"Played":1,"Avg":2},{"Username":"Cyrag","Total":63,"Played":34,"Avg":1.9},{"Username":"GrumpySilverBear","Total":7,"Played":5,"Avg":1.4},{"Username":"Fozzys","Total":135,"Played":25,"Avg":5.4},{"Username":"PunchinPriests","Total":178,"Played":32,"Avg":5.6},{"Username":"Starbuck_Durden","Total":24,"Played":6,"Avg":4},{"Username":"OfficialAnorak","Total":21,"Played":5,"Avg":4.2},{"Username":"PM_ME_UR_PINEAPPLE","Total":3,"Played":1,"Avg":3},{"Username":"Tamtaria","Total":4,"Played":2,"Avg":2},{"Username":"chisox1236","Total":120,"Played":23,"Avg":5.2},{"Username":"BeauSmit","Total":294,"Played":49,"Avg":6},{"Username":"JimGammy","Total":25,"Played":6,"Avg":4.2},{"Username":"Marethyuuu","Total":2,"Played":2,"Avg":1},{"Username":"zeeplereddit","Total":70,"Played":15,"Avg":4.7},{"Username":"tossintongues","Total":15,"Played":3,"Avg":5},{"Username":"X4ulZ4n","Total":24,"Played":5,"Avg":4.8},{"Username":"MightyJordan","Total":42,"Played":18,"Avg":2.3},{"Username":"bb199806011","Total":12,"Played":2,"Avg":6},{"Username":"always-a-bigger-fish","Total":162,"Played":29,"Avg":5.6},{"Username":"AlmightyAlpaca2","Total":110,"Played":28,"Avg":3.9},{"Username":"Ohnoitsmagic","Total":238,"Played":49,"Avg":4.9},{"Username":"mgg1967","Total":3,"Played":1,"Avg":3},{"Username":"smithy16644","Total":6,"Played":1,"Avg":6},{"Username":"GFly02","Total":138,"Played":33,"Avg":4.2},{"Username":"FaceToAss","Total":5,"Played":3,"Avg":1.7},{"Username":"ewanalbright","Total":6,"Played":1,"Avg":6},{"Username":"Riceylad543","Total":185,"Played":39,"Avg":4.7},{"Username":"Massaman95","Total":9,"Played":2,"Avg":4.5},{"Username":"aparkin11","Total":36,"Played":6,"Avg":6},{"Username":"cadillacbk","Total":294,"Played":49,"Avg":6},{"Username":"FrankTheGiantRabbit","Total":237,"Played":49,"Avg":4.8},{"Username":"IsmeJoe","Total":288,"Played":48,"Avg":6},{"Username":"Jackzilles","Total":22,"Played":7,"Avg":3.1},{"Username":"aljones27","Total":15,"Played":3,"Avg":5}],"colGroupNo":[0],"trendInfo":[null]};
+/** Interactivity for iNZightPlots
+ * For each plot there's a sub-class which extends with this class `inzplot`.
+ * This class applies for all single panel plots generated with the iNZightPlots
+ * package in R.
+ * Functions that apply for this class apply for all subclasses.
+ * Hierarchy of plots: inzplot -> {hexbin, histogram, dotscatter, bar}
+ *                     inzmap -> {region, centroid, sparklines}
+ * Additional classes/components: boxplot, legend, table, sparkplot
+ * @param {Object} chart - chart.json from R (which includes all data, and
+ * other params for identifying the chart originally drawn in R)
+ * The relevant plot class is called in the onload function (scroll to the bottom of
+ * this script, or search for 'ON LOAD FUNCTION').
+ * NOTE: If it so happens that iNZightPlots gets rewritten/gridSVG no longer gets used,
+ * it's best to rewrite everything.
+ * Naming of grid objects is very important especially when exporting with gridSVG
+ * for targeting certain elements and groups of elements. */
+class Inzplot {
+
+  constructor(chart) {
+    // set svg so that there's variable width and height based on div
+    this.svg = d3.select("svg")
+                 .attr("width", null)
+                 .attr("height", null);
+    this.chart = chart;
+    this.chartType = chart.type[0];
+    this.data = chart.data;
+    this.count = this.data.length;
+    this.Grob = this.getGrob(this.chartType);
+    this.levelNo = (chart.levNames) ? chart.levNames.length : 1;
+    this.panel = document.getElementById(this.Grob);
+  }
+
+  // create a tooltip for the plot
+  setTooltip(width, height = null) {
+    var tooltip = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .attr("id", "tooltip")
+                    .style("width", width)
+                    .style("height", height);
+    this.tooltip = tooltip;
+    return tooltip;
+  }
+
+  /** Identifying the 'Grob' in the chart
+   * (where do all our bars/dots/hexagons lie?)
+   * @param {String} chartType - the type of chart identified
+   * @return Grob identifier */
+  getGrob(chartType) {
+    var polygon = document.getElementsByTagName('polygon'),
+        p, Grob;
+    switch(chartType) {
+      case "hist":
+      p = polygon[2];
+      break;
+
+      case "bar":
+      p = polygon[polygon.length - 1];
+      break;
+
+      case "dot":
+      Grob = 'g[id^="inz-DOTPOINTS."]';
+      break;
+
+      case "scatter":
+      // test if there's a raster map (originally GRID.rastergrob)
+      // OR: you could change the grid name in iNZightMaps package to inz-SCATTERPOINTS...
+       Grob = (document.querySelectorAll('g[id^="background.map"]').length > 0) ?
+              'g[id^="SCATTERPOINTS."]' : 'g[id^="inz-SCATTERPOINTS."]';
+      break;
+
+      default:
+      // for hexbins, bp-stacked
+      p = polygon[0];
+      break;
+    }
+
+    if (p) {
+      var id = p.getAttribute('id');
+      Grob = id.substring(0, id.lastIndexOf('.'));
+    }
+
+    return Grob;
+  }
+
+  // Functions for enabling brushing over elements (selection box)
+  // `brushmove` differs for each plot (depending on what is being
+  // accumulated) - see respective subclasses to change this
+
+  /** Enable brushing on plot
+   * @param node - an element to target and add brush to
+   * @param {Number} selector - where exactly do you want to insert brush
+   * @param {Boolean} text - if an additional paragraph should be added
+   * This is generally true for histograms/hexbins to show accumulated data when
+   * brushing, otherwise false. */
+  enableBrush(node, selector, direction = "xy", text = false) {
+    if (text) {
+      d3.select('#control').append("p")
+                   .attr('class', 'brush-info');
+    }
+
+    // append brush:
+    var svg = d3.select('svg');
+    var brush = (direction === "x") ? d3.brushX() : d3.brush();
+
+    brush.on("start", this.brushstart)
+         .on("brush", this.brushmove)
+         .on("end", this.brushend);
+
+    d3.select(node)
+      .insert("g", "g:nth-child(" + selector + ")")
+      .attr("class", "brush")
+      .call(brush);
+
+    // make handles invisible:
+    d3.selectAll('.handle')
+      .style('opacity', 0);
+    d3.select('.overlay')
+      .attr("width", "100%")
+      .attr("height", "100%")
+      .style('stroke', 'none');
+  }
+
+  brushend() {
+    if (!d3.event.selection) {
+      d3.select(".selection")
+        .style("display", "none");
+    }
+  }
+
+  // When user begins brushing
+  brushstart() {
+    d3.select(".selection")
+      .style("display", null);
+  }
+
+}
+
+/** TABLE CLASS
+ * Includes setup with the DataTables library
+ * Any additional functions related to the table can be added here */
+class Table {
+
+  constructor(chartType) {
+    this.chartType = chartType;
+  }
+
+  /** Initializing table using DataTables
+   * To apply styles and formats onto table from the DataTables library
+   * @param {string} chartType - type of chart shown
+   * For bar plots, rows and columns ordering should be disabled (to link
+   * cells properly to bars + additional rows added)
+   * For all other plots, there's an ID column added where each row represents
+   * an element (a bar, a point, a region, a hexagon, e.t.c). */
+  setDT(chartType) {
+    var table;
+
+    if (chartType === "bar" || chartType === "bp-stacked") {
+      table = $('#table').DataTable({
+          "colReorder": true,
+          //disable ordering and sorting
+          "ordering": false,
+          "aaSorting": []
+      });
+    } else {
+      table = $('#table').DataTable({
+          "colReorder": true,
+          "columnDefs": [
+            { //hide rowID column
+              "targets": [0],
+              "visible": false
+            }
+          ]
+        });
+    }
+    this.DT = table;
+  }
+
+  // This is used to drive the table button
+  // For bar plots, it will hide percent/count conversion buttons
+  showTable() {
+    $('#table_wrapper').toggleClass('hidden');
+    $('.Percentage').toggleClass('hidden');
+    $('.Count').toggleClass('hidden');
+  }
+
+  // Table to plot linking:
+  tableToPlot(table, panel, element) {
+    $('#table tbody').on('click', 'tr', function() {
+      $(this).toggleClass('active');
+          let ind = table.rows('.active')[0];
+          let selector = "." + element;
+          d3.select(panel).selectAll(selector)
+            .attr("class", function(d, i) {
+                return (ind.includes(i) ? element + " selected" : element + " none");
+        });
+      //clear brush
+      d3.selectAll('.selection')
+        .style("display", "none");
+    });
+  }
+
+  // This is used to widen columns when there are more than 3
+  // columns in the table
+  widenColumns() {
+    // make tables not go wide when there's only 1 column
+    if (chart.type !== "bar") {
+      var ncol = $("#table thead tr th").length;
+      if (ncol < 3) {
+        $('#table').css('width', '50%');
+      } else if (ncol <= 4) {
+        $('#table').css('width', '75%');
+      } else {
+        $('#table').css('width', '100%');
+      }
+    } else {
+      $('#table').css('width', '100%');
+    }
+  }
+
+  // initialize table
+  init() {
+    this.setDT(this.chartType);
+    this.widenColumns();
+    // attach event handlers:
+    d3.select("#viewTable")
+      .on("click", this.showTable);
+  }
+
+}
+
+
+/** BOX PLOT CLASS
+ * For setting up interactivity and labels for box plots
+ * In cases where there are box plots present on the plot
+ * (specifically for dot plots and histograms), this will attach interactivity
+ * and label parts of the box plot when the user hovers/clicks on the box plot
+ * @param {Object} chart - chart information from R
+ * (ie factor levels, generally defaults to 1) */
+class Boxplot {
+
+  constructor(chart) {
+    this.levelNo = (chart.levNames) ? chart.levNames.length : 1;
+    this.boxData = chart.boxData;
+    this.polygonBox = document.querySelectorAll('g[id^="inz-box."]');
+    this.boxLines = document.querySelectorAll('g[id^="inz-box-line."]');
+  }
+
+  /** Main function to process and add labels, along with interactions for the
+   * box plot
+   * @param {Number} levelNo - number of levels/factors in the plot
+   */
+  boxMe(levelNo) {
+    var polygonBoxes = this.polygonBox;
+    var boxLines = this.boxLines;
+
+    for (let i = 1; i <= levelNo; i++) { //separate boxes for each plot
+      var polygonBox = polygonBoxes[i-1].children;
+      var boxLine = boxLines[i-1].children;
+      for (let j = 0; j < 2; j++) {
+        polygonBox[j].setAttribute('class', 'box-' + i);
+        boxLine[j].setAttribute('class', 'box-' + i);
+      }
+      this.boxLabelSet(i, 0, 1, 0,'LQ');
+      this.boxLabelSet(i, 1, 2, 2, 'UQ');
+      this.boxLabelSet(i, 1, 0, 1, 'Median');
+      this.boxLabelSet(i, 1, 0, 3, 'Min');
+      this.boxLabelSet(i, 2, 1, 4, 'Max');
+    }
+
+    //Box Plot interactions:
+    for (let j = 1; j <= levelNo; j++) {
+    var box = document.getElementsByClassName('box-' + j);
+    for (let i = 0; i < box.length; i++) {
+      box[i].setAttribute('onmouseover', 'fillBox(' + j + ')');
+      box[i].setAttribute('onmouseout', 'normalBox(' + j + ')');
+      box[i].setAttribute('onclick', 'showBox(' + j + ')');
+      }
+    }
+
+  }
+
+  /** Create box labels (min, max, mean, lower quartile, upper quartile)
+   * This is used to append text onto the SVG
+   * @param {Number} i - designated number that indicates what label it is
+   * @param {String} textinput - the label
+   * @param panel - where to append these svg labels to (generally this.panel
+   * is already identified)
+   * @param {Number} x - x-coordinate of where label is positioned
+   * @param {Number} y - y-coordinate of where label is positioned
+   * @return Appends labels onto SVG in correct positions
+   */
+  boxLabel(i, textinput, panel, x, y) {
+  var boxLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    boxLabel.setAttribute('class', 'label boxData-' + i + ' hidden');
+    boxLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ',' + (Number(y) + 2) + ') scale(1, -1)');
+    boxLabel.setAttributeNS(null, 'id', textinput);
+
+    var textNode = document.createTextNode(textinput);
+    boxLabel.appendChild(textNode);
+    panel.appendChild(boxLabel);
+  }
+
+  /** Sets all labels relative to the box plot and its information
+   * This function sets all the labels for the box plot at once.
+   * @param {Number} i
+   * @param {Number} p
+   * @param {Number} r
+   * @param {Number} q
+   * @param {String} textinput - Label (either: Min, Max, Median, LQ, UQ)
+   */
+  boxLabelSet(i, p, r, q, textinput) {
+
+    if (textinput == "Min" ||  textinput == "Max") {
+      var line = document.getElementById('inz-box-line.1.1.' + i  + '.1.' + p); //i is levelNo.
+      // p will either be 1 or 2 -> 1 = minLine, 2 = maxLine
+      line.setAttribute('class', 'box-' + i);
+      var boxPoints = line.getAttribute('points').split(" ")[r].split(",");
+      var panel = line.parentNode;
+    } else {
+      var box = document.getElementsByClassName('box-' + i)[p];
+      // boxplot split into two boxes - lowerbox (p = 0) and upperbox (p = 1)
+      var boxPoints = box.getAttribute('points').split(" ")[r].split(",");
+      var panel = box.parentNode;
+    }
+
+    var x = boxPoints[0], y = boxPoints[1], text;
+
+    if (textinput == "Median") {
+      // move median label below the box plot
+     y = boxPoints[1] - 11;
+    }
+    if (this.levelNo === 1) {
+      text = textinput + ": " + this.boxData[q].quantiles;
+    } else {
+      text = textinput + ": " + this.boxData[i-1][q].quantiles;
+    }
+    // this is associated with the boxData imported from R.
+    //q = 0 (LQ), 1 (UQ), 2 (Median), 3 (Min), 4 (Max)
+    this.boxLabel(i, text, panel, x, y);
+  }
+
+  init() {
+    this.boxMe(this.levelNo);
+  }
+
+}
+
+// functions for box plot event handling:
+fillBox = function(j) {
+  d3.selectAll('.box-' + j)
+    .classed('fillBox', true);
+};
+
+normalBox = function(j) {
+  d3.selectAll('.box-' + j)
+    .classed('fillBox', false);
+  };
+
+showBox = function(j) {
+  var boxData = d3.selectAll('.boxData-' + j);
+    boxData.classed('hidden', !boxData.classed('hidden'));
+}
+
+class MeanIndicator {
+  constructor(props) {
+    console.log(props);
+    this.mean = props.meanData;
+    this.levelNo = (chart.levNames) ? chart.levNames.length : 1;
+    // this.boxData = chart.boxData;
+    this.meanPoint = document.querySelectorAll('g[id^="inz-mean."]');
+  }
+  
+  init() {
+    for (let i = 1; i <= this.levelNo; i++) {
+      this.addMouseOver(i - 1);
+    }
+  }
+  
+  addMouseOver(i) {
+    var x = this.meanPoint[i].getElementsByTagName("use")[0].getAttribute('x');
+    var y = this.meanPoint[i].getElementsByTagName("use")[0].getAttribute('y');
+    var transf = this.meanPoint[i].getElementsByTagName("use")[0].getAttribute('transform').toString();
+    
+    var d = transf.slice(transf.indexOf('translate(') + 10, -1).split(',');
+    
+    
+    var meanLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    // boxLabel.setAttribute('class', 'label boxData-' + i + ' hidden');
+    // meanLabel.setAttributeNS(null, 'x', x);
+    // meanLabel.setAttributeNS(null, 'y', y);
+    meanLabel.setAttributeNS(null, 'transform', 'translate(' + Number(x) + ', ' + (Number(y) - Number(d[1])) + ') scale(1, -1)');
+    meanLabel.setAttributeNS(null, 'dominant-baseline', 'baseline');
+    // meanLabel.setAttributeNS(null, 'text-anchor', 'start');
+    meanLabel.setAttribute('class', 'label hidden group-mean-label');
+    meanLabel.setAttribute('id', 'group-mean-' + i);
+    // boxLabel.setAttributeNS(null, 'id', textinput);
+    
+    var textNode = document.createTextNode(this.mean[i]);
+    meanLabel.appendChild(textNode);
+    this.meanPoint[i].appendChild(meanLabel);
+    
+    this.meanPoint[i].setAttribute('onclick', 'showMean(' + i + ')');
+    this.meanPoint[i].setAttribute('style', 'cursor: pointer');
+    
+    return this;
+  }
+}
+
+showMean = function(i) {
+  var boxData = d3.select('#group-mean-' + i);
+    boxData.classed('hidden', !boxData.classed('hidden'));
+}
+
+
+/** LEGEND CLASS
+ * For attaching legend interactivity
+ * Includes trend line interactivity for scatter plots
+ * Generally for coloured bar plots, colored dot plots and scatter plots
+ * @param props - generally refers to the plot class identified */
+class Legend {
+
+  constructor(props) {
+    this.legendLayout = document.getElementById('inz-leg-layout.1');
+    this.legLineLayout = document.getElementById('inz-leg-lines.1');
+    this.levelNo = (props.levelNo) ? props.levelNo : 1;
+    this.chartType = props.chartType;
+    this.colGroupNo = props.colGroupNo;
+    this.varNames = props.chart.varNames;
+    this.Grob = props.Grob;
+    this.tbl = props.tbl;
+    this.trendInfo = props.chart.trendInfo;
+  }
+
+  // This is used to enable legend interactivity for dot plots and scatter plots
+  enableHandlers() {
+    if (!this.legendLayout) return;
+    let colGroupNo = this.colGroupNo;
+
+    //grab legend text and respective key:
+    let keyText = document.querySelectorAll('tspan[id^="inz-leg-txt-"]');
+    let key = document.querySelectorAll('use[id^="inz-leg-pt-"]');
+    let Grob = this.Grob;
+    let table = this.tbl;
+    let varNames = this.varNames;
+
+    function subset(i) {
+      let ind = i + 1;
+      //get the title variable:
+      var titleVar = document.getElementById('inz-leg-title.1.1.tspan.1').textContent;
+      var key = document.getElementById('inz-leg-pt-' + ind + '.1.1');
+      var keyText = document.getElementById('inz-leg-txt-' + ind + '.1.1.tspan.1').textContent;
+      var names = varNames;
+      var count = document.getElementsByClassName('point').length;
+      var el = document.querySelectorAll(Grob);
+
+      for (let j = 1; j <= count; j++) {
+          var point = document.getElementById(el[0].id + '.' + j);
+          if (key.getAttribute('fill') == point.getAttribute('stroke')) {
+              point.setAttribute('class', 'point selected');
+          } else {
+              point.setAttribute('class', 'point none');
+          }
+      }
+
+      // find column index + filter: (add one for hidden column)
+      var colInd = names.indexOf(titleVar) + 1;
+      table.search('').columns().search('').draw();
+      table.columns(colInd).search("^" + keyText + "$", true, false).draw();
+    }
+
+    this.addHandlers(subset);
+  }
+
+  /** Add interactivity to key and text in legend
+   * @param {Function} subset - A function to filter by a certain group when
+   * user clicks on the group (e.g. dots + table are filtered)
+   * In this case, the subset function is different for dot plots/scatter plots
+   * and for bar plots. However, the hovers are practically the same (show/out functions) */
+  addHandlers(subset) {
+    let keyText = document.querySelectorAll('tspan[id^="inz-leg-txt-"]');
+    let key = document.querySelectorAll('use[id^="inz-leg-pt-"]');
+
+    function show(i) {
+      let ind = i + 1;
+      let circle = document.getElementById('inz-leg-pt-' + ind + '.1.1');
+      let text = document.getElementById('inz-leg-txt-' + ind + '.1.1.tspan.1');
+      if (circle.getAttribute("fill") !== "none") {
+            text.setAttribute('fill', circle.getAttribute('fill'));
+        } else {
+            text.setAttribute('fill', circle.getAttribute('stroke'));
+        }
+      circle.setAttribute("class", "show");
+      text.setAttribute("class", "show");
+    }
+
+    function out(i) {
+      let ind = i + 1;
+      let keyText = document.getElementById('inz-leg-txt-' + ind + '.1.1.tspan.1');
+      let key = document.getElementById('inz-leg-pt-' + ind + '.1.1');
+      keyText.setAttribute("class", "out keyText");
+      key.setAttribute("class", "show");
+    }
+
+    // text handlers:
+    d3.selectAll(keyText)
+      .on("mouseover", (d, i) => show(i))
+      .on("mouseout", (d, i) => out(i))
+      .on("click", (d, i) => subset(i));
+
+    // circle handlers:
+    d3.selectAll(key)
+      .on("mouseover", (d, i) => show(i))
+      .on("mouseout", (d, i) => out(i))
+      .on("click", (d, i) => subset(i));
+  }
+
+  /** This is used to enable trend line interactivity
+   * Primarily adds interactivity to trend lines
+   * @param {String} t - trend line class ("linear", "quadratic", "cubic")
+   * @param {String} g - HTML label generated for the trend line
+   * @param ptip - d3 object for tooltip
+   * Only found on scatter plots only */
+  enableTrends(t, g, ptip) {
+    let legLineLayout = this.legLineLayout;
+
+    d3.select(legLineLayout).selectAll("." + t)
+    .on('mouseover', function() {
+        d3.select(this).style("opacity", 0.5);
+    })
+    .on('mouseout', function() {
+        d3.select(this).style("opacity", 1);
+    })
+    .on('click', function() {
+        d3.selectAll('.trend')
+        .classed('hidden', function() {
+          return((this.getAttribute('class').includes(t) === true) ? false : true);
+      });
+
+      return ptip.classed("hidden", false)
+                 .html(g);
+        });
+
+    d3.selectAll(".trend." + t)
+      .on("mouseover", function() {
+          d3.select(".tooltip")
+            .style("left", d3.event.pageX - 50 + "px")
+            .style("top", d3.event.pageY - 50 + "px")
+            .style("visibility", "visible")
+            .html(g);
+          })
+      .on("mouseout", function() {
+          d3.select(".tooltip")
+            .style("visibility", "hidden");
+          })
+  }
+
+  /** Get the equation of the trend line and create tooltip labels
+   * @param t - type of trend identified ("Linear", "Quadratic", "Cubic")
+   * @return returns HTML for tooltip label
+   * trendInfo is stored in chart information */
+  getEquation(t) {
+    let trendInfo = this.trendInfo;
+    switch(t) {
+        case "linear":
+        return "Linear fit:" + "<span> y = " + trendInfo[t][0] + " " +
+               (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+               + "x " + "</span> <br />" + "R" + "<sup>2</sup> : " + "<span>"
+               + trendInfo[t][2] + "</span>";
+        break;
+
+        case "quadratic":
+        return "Quadratic fit:" + "<span> y = " + trendInfo[t][0] + " "
+               + (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+               + "x " + (trendInfo[t][2] > 0 ? ("+" + trendInfo[t][2]) : trendInfo[t][2])
+               + "x<sup>2</sup>" + "</span>" + "<br />"+ "R" + "<sup>2</sup> : " + "<span>"
+               + trendInfo["rank.cor"][0] + "</span>";
+        break;
+
+        case "cubic":
+        return "Cubic fit: <span> y = " + trendInfo[t][0] + " " +
+               (trendInfo[t][1] > 0 ? ("+" + trendInfo[t][1]) : trendInfo[t][1])
+               + "x " + (trendInfo[t][2] > 0 ? ("+" + trendInfo[t][2]) : trendInfo[t][2])
+               + "x<sup>2</sup> " + (trendInfo[t][3] > 0 ? ("+" + trendInfo[t][3]) : trendInfo[t][3])
+               + "x<sup>3</sup> </span>" + "<br />" +  "R" + "<sup>2</sup> : <span>"
+               + trendInfo["rank.cor"][0] + "</span>";
+        break;
+
+        default:
+        return "Invalid trend!";
+    }
+  }
+
+  /** For identifying if there is a separate trend line legend present
+   * Main function for enabling interactivity for trend lines */
+  trendLegend() {
+    // if there is no legend, return:
+    if (!this.legLineLayout) return;
+
+    let trendInfo = this.trendInfo;
+    var lines = d3.select(this.legLineLayout).selectAll('polyline')
+                  .attr('class', function() {
+                    var id = this.id;
+                    var type = id.substring(id.lastIndexOf("-") + 1, id.indexOf("."));
+                    return type;
+                  });
+    var keys = d3.select(this.legLineLayout).selectAll('tspan')
+                 .attr('class', function() { return this.innerHTML; });
+
+    //insert text into the control panel:
+    var ptip = d3.select('#control')
+             .append("p")
+             .attr('class', 'trend-info')
+             .classed("hidden", true);
+
+   var ll = this.legLineLayout.querySelectorAll('tspan');
+
+   //loop over lines
+   for (var i = 0; i < ll.length; i++) {
+       var t = ll[i].innerHTML;
+       var line = document.getElementById('inz-trend-' + t + '.1.1.1.1');
+       line.setAttribute('class', t + ' trend');
+
+       var g = this.getEquation(t);
+       this.enableTrends(t, g, ptip);
+   }
+  }
+
+  // To initialize legend interactivity (both trendlines and groups)
+  init() {
+    // enable handlers on legend
+    this.enableHandlers();
+    //enable trend legend handlers:
+    this.trendLegend();
+  }
+
+}
+
+/** =================================================
+  ON LOAD FUNCTION
+  Facilitates all toggles on navigation bar and
+  initializes appropriate plot
+ ================================================== **/
+
+$(function() {
+  $(".view-tbl").click(function() {
+    $(".tbl-div").removeClass("expand").toggleClass("moveRight");
+    $(".svg-div").removeClass("moveLeft").toggleClass("mid");
+    // for bars:
+    $(".Percentage").toggleClass("hidden");
+    $(".Count").toggleClass("hidden");
+  });
+
+  $(".plot").click(function() {
+    $(".svg-div").removeClass("mid").toggleClass("moveLeft");
+    $(".tbl-div").removeClass("moveRight").toggleClass("expand");
+  });
+
+  $(".help").click(function() {
+    $(".help-overlay").toggleClass("move");
+  });
+
+  $(".help-overlay").click(function() {
+    $(".help-overlay").toggleClass("move");
+  });
+
+  // load chart:
+  var plot;
+
+  switch(chart.type[0]) {
+    //for inzplots:
+    case "hex":
+    plot = new Hexbin(chart);
+    break;
+
+    case "hist":
+    plot = new Histogram(chart);
+    break;
+
+    case "dot":
+    case "scatter":
+    plot = new DotScatter(chart);
+    break;
+
+    case "bar":
+    plot = new UnstackedBar(chart);
+    break;
+
+    case "bp-stacked":
+    plot = new StackedBar(chart);
+    break;
+
+    //for inzmaps:
+    case "region":
+    plot = new RegionMap(chart);
+    break;
+
+    case "point":
+    plot = new CentroidMap(chart);
+    break;
+
+    case "sparklines":
+    plot = new SparkMap(chart);
+    break;
+
+    default:
+    return;
+  }
+
+  plot.init();
+  console.log("Load complete!");
+
+});
+/** DOT PLOTS AND SCATTER PLOTS
+ * Class for initializing interactivity for dot plots and scatter plots
+ * Includes scatterplots drawn with iNZightMaps */
+class DotScatter extends Inzplot {
+
+  constructor(props) {
+    super(props);
+    this.panel = document.querySelector(this.Grob);
+    // bind event handlers:
+    this.reset = this.reset.bind(this);
+    this.brushmove = this.brushmove.bind(this);
+    this.filterTable = this.filterTable.bind(this);
+  }
+
+  // create options for variable selection:
+  createForm() {
+    d3.select(".menu").insert("li", ".help")
+      .attr("class", "var-control")
+    //create form
+    var form = d3.select(".var-control").append("div")
+                    .attr("class", "form-group form-inline form-div")
+                    .attr("id", "form");
+
+    form.append("label")
+        .html("Variables to display:");
+
+    form.append("select")
+        .attr("class", "form-control select-var")
+        .attr("id", "selectVar")
+        .attr("multiple", "multiple");
+
+    // get column names:
+    var ncol = $("#table thead tr th").length;
+    var th = document.getElementsByTagName('th');
+    for (var i = 0; i <= ncol; i++) {
+        var opt = document.createElement('option');
+        if (i == 0) {
+          opt.value = 0;
+          opt.classList.add('select');
+          opt.innerHTML = "Display all";
+          opt.selected = "selected";
+        } else {
+        opt.value = i;
+        opt.innerHTML = th[i-1].innerHTML;
+      }
+      selectVar.appendChild(opt);
+    };
+  }
+
+  //filter table
+  filterTable() {
+    let table = this.tbl,
+        levelNo = this.levelNo,
+        ind = [];
+    //search for all those that are selected, then extract id num:
+    var selected = document.getElementsByClassName('selected');
+    for (var j = 0; j < selected.length; j++) {
+        var id = selected[j].id;
+        if (levelNo > 1) {
+          // search for the middle number due to levels:
+          var mid = id.substring(0, id.lastIndexOf('.1.'));
+          var levNum = Number(mid.substring(mid.lastIndexOf('.') + 1));
+          var num = Number(id.substring(id.lastIndexOf('.') + 1));
+          // actual index in table:
+          var idNum = chart.countsTab[levNum - 1] + num;
+        } else {
+          var idNum = id.substring(id.lastIndexOf('.') + 1);
+        }
+        ind.push("^" + idNum + "$");
+    }
+
+    table.search('').columns().search('').draw();
+    table.columns(0).search(ind.join("|"), true, false).draw();
+  }
+
+  // set tooltip and point interactions
+  setHovers() {
+    var tooltip = this.tooltip,
+        Grob = document.querySelectorAll(this.Grob),
+        data = this.data,
+        levelNo = this.levelNo,
+        filterTable = this.filterTable,
+        table = this.tbl;
+
+    d3.selectAll(Grob).selectAll("use")
+      .attr("class", "point");
+
+      d3.selectAll('.point')
+        .data(data)
+        .attr('class', 'point')
+        .on('mouseover', function (d, i) {
+            var g = ' ';
+            var names = chart.varNames;
+            var selectVar = document.getElementsByTagName('select')[0];
+            var sOpt = selectVar.selectedOptions;
+            var s = [];
+            for (j = 0; j < sOpt.length; j++) {
+                s.push(Number(sOpt[j].value));
+              }
+
+            for (var j = 0; j < s.length; j++) {
+              if (s[j] !== undefined) {
+                var w = names[s[j]-1] + ": <span>"
+                var t =  data[i][names[s[j]-1]] + "</span> <br>"
+             }
+
+             var g = w + t + g;
+             var p = s.length;
+
+             if (s.includes(0)) {
+               var g = ' ';
+               for (var k = 0; k < names.length; k++) {
+                 var w = names[k] + ": <span>"
+                 var t =  data[i][names[k]] + "</span> <br>"
+               var g = w + t + g;
+               var p = names.length;
+             }
+           }
+         }
+
+         return tooltip.style('visibility', 'visible')
+                       .style("left", d3.event.pageX - 50 + "px")
+                       .style("top", d3.event.pageY - 30 - 15*(p-1) + "px")
+                       .html(g);
+          })
+          .on('mouseout', function () { return tooltip.style("visibility", 'hidden'); })
+          .on('click', function (d, i) {
+            var selected = this;
+            // clear selection box:
+            d3.selectAll('.selection')
+              .style("display", "none");
+
+            d3.selectAll('.point')
+              .attr("class", function() {
+                  if (!d3.event.shiftKey) {
+                    return (this === selected) ? "point selected" : "point none";
+                  } else {
+                    if (this.getAttribute('class') === "point selected") {
+                      return "point selected";
+                    } else if (this === selected) {
+                        return "point selected";
+                    } else {
+                      return "point none";
+                    }
+                }
+              });
+
+              filterTable();
+
+          })
+          .on('dblclick', function (d, i) { // deselect
+            var selected = this;
+             selected.setAttribute('class', 'point none');
+             filterTable();
+          });
+  }
+
+  // add brush to the plot
+  addBrush() {
+    var tag, selector;
+    // identify if a raster map is present (from iNZightMaps)
+    if (document.querySelectorAll('g[id^="background.map"]').length > 0) {
+      tag = "inz-plot-bg.1.1.1";
+      selector = 4;
+    }  else {
+      tag = "inz-x-grid.1.1.1";
+      selector = 4;
+    }
+
+    let pp = document.getElementById(tag).parentNode;
+    this.enableBrush(pp, selector, "xy", false);
+  }
+
+  brushmove() {
+    var s = d3.event.selection,
+        x1 = s[0][0],
+        x2 = s[1][0],
+        y1 = s[0][1],
+        y2 = s[1][1],
+        ind = [];
+
+    d3.selectAll('.point')
+          .attr('class', function(d, i) {
+            var selected = this;
+            var x = this.x.baseVal.value;
+            var y = this.y.baseVal.value;
+            if ((x1 <= x && x <= x2) && (y1 <= y && y <= y2)) {
+              return('point selected');
+            } else {
+              return('point none');
+            }
+          });
+
+    this.filterTable();
+  }
+
+  reset() {
+    d3.selectAll('.point')
+      .classed("none selected", false);
+
+    // restore table to original state
+    this.tbl.search('').columns().search('').draw();
+    this.tbl.rows().nodes().to$().removeClass('active');
+
+    d3.selectAll('.label')
+    .classed("hidden", true);
+
+    // clear selection box:
+    d3.selectAll('.selection')
+      .style("display", "none");
+
+    d3.selectAll('.trend')
+      .classed("hidden", false);
+
+    d3.select('.trend-info')
+      .classed("hidden", true);
+  }
+
+  init() {
+    //initialize table:
+    var tbl = new Table(this.chartType);
+    tbl.init();
+    tbl.tableToPlot(tbl.DT, this.panel, "point");
+    this.tbl = tbl.DT;
+
+    // set tooltip:
+    this.createForm();
+    this.setTooltip(100);
+    this.setHovers();
+    this.addBrush();
+
+    // init box plot if it's a dot plot and boxplots are enabled:
+    if (this.chartType === "dot" && this.chart.boxData.length > 0) {
+      var box = new Boxplot(this.chart);
+      box.init();
+    }
+    
+    if (this.chartType === 'dot' && this.chart.meanData.length > 0) {
+      var meanInds = new MeanIndicator(this.chart);
+      meanInds.init();
+    }
+
+    //enable legend interactions
+    let legend = new Legend(this);
+    legend.init();
+
+    //enable event handlers:
+    d3.select("#reset")
+      .on("click", this.reset);
+
+    d3.select(".overlay")
+      .on("dblclick", this.reset);
+  }
+
+} </script>
+  </body>
+</html>
